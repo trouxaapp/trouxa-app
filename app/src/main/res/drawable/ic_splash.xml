@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Red "T" letter centered as splash icon -->
+    <path
+        android:pathData="M30,38 L78,38 L78,46 L58,46 L58,76 L50,76 L50,46 L30,46 Z"
+        android:fillColor="#DC2626"/>
+</vector>
