@@ -1,6 +1,7 @@
 # Gradle files
 .gradle/
 build/
+.kotlin/
 
 # Local configuration file (sdk path, etc)
 local.properties
@@ -23,9 +24,11 @@ misc.xml
 deploymentTargetDropDown.xml
 render.experimental.xml
 
-# Keystore files
+# Keystore files (release signing stays out of the repo)
+keystore.properties
 *.jks
 *.keystore
+/keystore/
 
 # Google Services (e.g. APIs or Firebase)
 google-services.json

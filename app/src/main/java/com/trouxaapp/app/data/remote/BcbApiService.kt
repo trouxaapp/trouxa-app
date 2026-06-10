@@ -27,9 +27,11 @@ interface BcbApiService {
 
     companion object {
         const val BASE_URL = "https://api.bcb.gov.br/"
-        const val IPCA = 433
-        const val SELIC = 432  // Meta COPOM (não 4390 que é diária)
         const val DOLAR = 1
+        const val SELIC = 432  // Meta COPOM (não 4390 que é diária)
+        const val IPCA_MENSAL = 433
+        const val IPCA_12M = 13522
+        const val SALARIO_MINIMO = 1619
     }
 }
 

@@ -1,0 +1,46 @@
+{
+  "versao": 3,
+  "atualizado": "2026-06-10",
+  "itens": [
+    {
+      "id": 1,
+      "tipo": "destaque",
+      "titulo": "Salário mínimo de 2026",
+      "texto": "O salário mínimo vale R$ 1.621 desde 1º de janeiro de 2026, fixado pelo Decreto 12.797/2025. O reajuste do mínimo sempre entra em vigor em janeiro.",
+      "fonte": "Planalto, Decreto 12.797/2025",
+      "fonte_url": "https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2025/decreto/d12797.htm",
+      "data_referencia": "2026-01-01",
+      "ativo": true
+    },
+    {
+      "id": 2,
+      "tipo": "destaque",
+      "titulo": "O mínimo 'necessário' segundo o DIEESE",
+      "texto": "O DIEESE calcula todo mês quanto o salário mínimo precisaria valer pra sustentar uma família de quatro pessoas. No cálculo de abril de 2026, deu R$ 7.612,49. O mínimo oficial é R$ 1.621.",
+      "fonte": "DIEESE, Pesquisa Nacional da Cesta Básica",
+      "fonte_url": "https://www.dieese.org.br/analisecestabasica/salarioMinimo.html",
+      "data_referencia": "2026-04-30",
+      "ativo": true
+    },
+    {
+      "id": 3,
+      "tipo": "voce_sabia",
+      "titulo": "Você pode propor uma lei",
+      "texto": "Qualquer pessoa pode cadastrar uma ideia de lei no portal e-Cidadania, do Senado. Se a ideia junta 20 mil apoios em 4 meses, ela vira sugestão legislativa e uma comissão do Senado é obrigada a analisar.",
+      "fonte": "Senado Federal, portal e-Cidadania",
+      "fonte_url": "https://www12.senado.leg.br/ecidadania",
+      "data_referencia": "2026-06-10",
+      "ativo": true
+    },
+    {
+      "id": 4,
+      "tipo": "voce_sabia",
+      "titulo": "Os gastos do mandato são públicos",
+      "texto": "Além do salário, cada deputado federal tem a CEAP, uma cota mensal que banca passagens, combustível, escritório e divulgação do mandato. Cada nota fiscal é pública e dá pra consultar item por item no site da Câmara. A aba Deputados deste app mostra esses dados.",
+      "fonte": "Câmara dos Deputados, Cota Parlamentar",
+      "fonte_url": "https://www.camara.leg.br/cota-parlamentar/",
+      "data_referencia": "2026-06-10",
+      "ativo": true
+    }
+  ]
+}

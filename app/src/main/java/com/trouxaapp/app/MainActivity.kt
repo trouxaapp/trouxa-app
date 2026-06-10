@@ -1,14 +1,9 @@
 package com.trouxaapp.app
 
-import android.Manifest
-import android.content.Context
-import android.content.pm.PackageManager
-import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -16,11 +11,9 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -28,137 +21,85 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.trouxaapp.app.data.local.DataProvider
-import kotlinx.coroutines.delay
-import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.compose.rememberNavController
 import com.trouxaapp.app.ui.navigation.TrouxaNavGraph
 import com.trouxaapp.app.ui.screens.onboarding.OnboardingScreen
+import com.trouxaapp.app.ui.theme.Background
+import com.trouxaapp.app.ui.theme.OnSurfaceFaint
+import com.trouxaapp.app.ui.theme.Red600
 import com.trouxaapp.app.ui.theme.TrouxaAppTheme
-import com.trouxaapp.app.util.EngagementManager
-import com.trouxaapp.app.worker.DailyNotificationWorker
-import com.trouxaapp.app.worker.DataSyncWorker
-import com.trouxaapp.app.worker.LawSyncWorker
+import com.trouxaapp.app.util.UserPrefs
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-
-    private val notifPermission = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { /* granted or not, we proceed */ }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        val prefs = getSharedPreferences("trouxa_prefs", Context.MODE_PRIVATE)
-        val isFirstRun = prefs.getBoolean("first_run", true)
-
-        // Schedule workers
-        DailyNotificationWorker.schedule(this)
-        LawSyncWorker.schedule(this)
-        DataSyncWorker.schedule(this)
-
-        // Request notification permission on Android 13+
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-            ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
-            != PackageManager.PERMISSION_GRANTED
-        ) {
-            notifPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
-        }
-
-        // Init engagement tracking
-        val engagement = EngagementManager(this)
+        val prefs = UserPrefs(this)
+        // Notification pushes carry the bill id so tapping one lands on it
+        val deepLinkPlId = intent?.getIntExtra("plId", 0)?.takeIf { it > 0 }
 
         setContent {
             TrouxaAppTheme {
-                var showOnboarding by remember { mutableStateOf(isFirstRun) }
-                var showSplash by remember { mutableStateOf(!isFirstRun) }
+                var showSplash by remember { mutableStateOf(true) }
+                var showOnboarding by remember { mutableStateOf(!prefs.onboardingDone) }
 
-                if (showSplash) {
-                    SplashWithPhrase { showSplash = false }
-                } else if (showOnboarding) {
-                    OnboardingScreen(
-                        onFinish = { uf ->
-                            prefs.edit().putBoolean("first_run", false).apply()
-                            if (uf.isNotEmpty()) {
-                                engagement.userUf = uf
-                            }
+                when {
+                    showSplash -> BrandSplash { showSplash = false }
+                    showOnboarding -> OnboardingScreen(
+                        onFinish = { uf, notifOptIn ->
+                            prefs.onboardingDone = true
+                            if (uf.isNotEmpty()) prefs.userUf = uf
+                            if (notifOptIn) prefs.notifEventos = true
                             showOnboarding = false
                         }
                     )
-                } else {
-                    val navController = rememberNavController()
-                    TrouxaNavGraph(navController = navController)
+                    else -> {
+                        val navController = rememberNavController()
+                        TrouxaNavGraph(navController = navController, startPlId = deepLinkPlId)
+                    }
                 }
             }
         }
     }
 }
 
-@androidx.compose.runtime.Composable
-private fun SplashWithPhrase(onDone: () -> Unit) {
-    val context = androidx.compose.ui.platform.LocalContext.current
-    val phrase = remember {
-        val prefs = context.getSharedPreferences("trouxa_prefs", Context.MODE_PRIVATE)
-        val lastIdx = prefs.getInt("last_splash_idx", -1)
-        val phrases = DataProvider.splashPhrases
-        val available = phrases.filterIndexed { idx, _ -> idx != lastIdx }
-        val chosen = available.random()
-        prefs.edit().putInt("last_splash_idx", phrases.indexOf(chosen)).apply()
-        chosen
-    }
-    var showLabel by remember { mutableStateOf(false) }
-    var showTitle by remember { mutableStateOf(false) }
-    var showPhrase by remember { mutableStateOf(false) }
-    var fadeAll by remember { mutableStateOf(true) }
+/**
+ * Brand splash, shown on every open by design, kept under a second.
+ * Logo only: factual claims have no place on a screen with no sources.
+ */
+@Composable
+private fun BrandSplash(onDone: () -> Unit) {
+    var visible by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
-        delay(300)
-        showLabel = true
-        delay(300)
-        showTitle = true
-        delay(500)
-        showPhrase = true
-        delay(2500)
-        fadeAll = false
-        delay(500)
+        visible = true
+        delay(750)
+        visible = false
+        delay(180)
         onDone()
     }
 
-    AnimatedVisibility(visible = fadeAll, enter = fadeIn(tween(0)), exit = fadeOut(tween(500))) {
-        Box(
-            modifier = Modifier.fillMaxSize().background(Color.Black),
-            contentAlignment = Alignment.Center
+    Box(
+        modifier = Modifier.fillMaxSize().background(Background),
+        contentAlignment = Alignment.Center
+    ) {
+        AnimatedVisibility(
+            visible = visible,
+            enter = fadeIn(tween(220)),
+            exit = fadeOut(tween(180))
         ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.padding(horizontal = 40.dp)
-            ) {
-                AnimatedVisibility(visible = showLabel, enter = fadeIn(tween(300))) {
-                    Text("te fizeram de", color = Color(0xFF737373), fontSize = 14.sp)
-                }
-                AnimatedVisibility(visible = showTitle, enter = fadeIn(tween(500))) {
-                    Text("TROUXA", color = Color(0xFFDC2626), fontSize = 42.sp, fontWeight = FontWeight.Black)
-                }
-                Spacer(modifier = Modifier.height(24.dp))
-                AnimatedVisibility(visible = showPhrase, enter = fadeIn(tween(800))) {
-                    Text(
-                        phrase,
-                        color = Color(0xFF9CA3AF),
-                        fontSize = 13.sp,
-                        textAlign = TextAlign.Center,
-                        lineHeight = 18.sp
-                    )
-                }
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text("te fizeram de", color = OnSurfaceFaint, fontSize = 14.sp)
+                Text("TROUXA", color = Red600, fontSize = 42.sp, fontWeight = FontWeight.Black)
             }
         }
     }
