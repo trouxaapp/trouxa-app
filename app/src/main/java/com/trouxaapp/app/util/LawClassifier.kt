@@ -34,17 +34,17 @@ object LawClassifier {
             "contribuicao social" to 3, "aliquota" to 3, "isencao" to 2,
             "incentivo fiscal" to 2, "imposto de renda" to 3, "cofins" to 3
         ),
-        "Saude" to listOf(
+        "Saúde" to listOf(
             "saude" to 3, "sus" to 3, "hospital" to 3, "medicament" to 3,
             "vacina" to 3, "medic" to 2, "doenca" to 2, "plano de saude" to 3,
             "enferm" to 2, "atendimento" to 1
         ),
-        "Educacao" to listOf(
+        "Educação" to listOf(
             "educacao" to 3, "escola" to 3, "universidad" to 3, "professor" to 3,
             "ensino" to 3, "estudante" to 2, "enem" to 3, "fies" to 3,
             "creche" to 2, "alfabetiz" to 2
         ),
-        "Seguranca e justica" to listOf(
+        "Segurança e justiça" to listOf(
             "penal" to 3, "crime" to 3, "policia" to 3, "seguranca publica" to 3,
             "penitenciari" to 3, "violencia" to 2, "arma de fogo" to 3,
             "feminicidio" to 3, "trafico" to 2, "codigo penal" to 3
@@ -59,7 +59,7 @@ object LawClassifier {
             "clima" to 2, "poluic" to 3, "energia renovavel" to 3,
             "unidade de conservacao" to 3, "fauna" to 2, "flora" to 2
         ),
-        "Transporte e combustivel" to listOf(
+        "Transporte e combustível" to listOf(
             "transporte" to 3, "transito" to 3, "combustivel" to 3, "gasolina" to 3,
             "etanol" to 2, "pedagio" to 3, "rodovi" to 2, "motorista" to 2,
             "cnh" to 3, "aereo" to 2
@@ -68,11 +68,11 @@ object LawClassifier {
             "moradia" to 3, "habitacao" to 3, "aluguel" to 3, "imovel" to 2,
             "saneamento" to 3, "urbanis" to 2, "regularizacao fundiaria" to 3
         ),
-        "Eleicoes e politica" to listOf(
+        "Eleições e política" to listOf(
             "eleitoral" to 3, "eleicao" to 3, "partido politic" to 3, "mandato" to 2,
             "campanha eleitoral" to 3, "voto" to 2, "candidat" to 2
         ),
-        "Orcamento e gasto publico" to listOf(
+        "Orçamento e gasto público" to listOf(
             "orcament" to 3, "credito suplementar" to 3, "despesa publica" to 3,
             "emenda parlamentar" to 3, "divida publica" to 3, "fundo" to 1,
             "repasse" to 2, "licitac" to 3
@@ -130,13 +130,14 @@ object LawClassifier {
      */
     fun buildTitulo(ementa: String): String {
         var t = cleanEmenta(ementa)
-        // First sentence is usually the operative clause
-        val firstSentence = t.split(". ").firstOrNull()?.trim() ?: t
-        t = firstSentence.removeSuffix(".")
-        if (t.length > 110) {
-            t = t.take(110).substringBeforeLast(' ') + "…"
+        // Do NOT cut at the first ". ": legal text is full of "art.", "arts.",
+        // "inc.", "n.º", "§" that are abbreviations, not sentence ends (that bug
+        // turned "Susta a aplicação do art. 5º..." into "Susta a aplicação do art").
+        // Just trim to a readable length at a word boundary; the card shows 3 lines.
+        if (t.length > 140) {
+            t = t.take(140).substringBeforeLast(' ').trimEnd(',', ';', ':', '.') + "…"
         }
-        return t
+        return t.removeSuffix(".")
     }
 
     /**

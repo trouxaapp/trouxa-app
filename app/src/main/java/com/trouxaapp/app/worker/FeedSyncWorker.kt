@@ -35,72 +35,109 @@ class FeedSyncWorker @AssistedInject constructor(
     companion object {
         const val FEED_URL =
             "https://raw.githubusercontent.com/trouxaapp/trouxa-app/main/feed/feed.json"
+        const val ASSET_FEED = "feed.json"
     }
 
     override suspend fun doWork(): Result {
+        val agora = System.currentTimeMillis()
+
+        // Remote is authoritative: when it answers, it wins and can retract content.
         try {
             val request = Request.Builder().url(FEED_URL).build()
             val body = okHttp.newCall(request).execute().use { resp ->
-                if (!resp.isSuccessful) {
-                    syncLogDao.insert(SyncLogEntity(worker = "feed", timestamp = System.currentTimeMillis(), success = false, error = "HTTP ${resp.code}"))
-                    return Result.retry()
-                }
+                if (!resp.isSuccessful) throw IllegalStateException("HTTP ${resp.code}")
                 resp.body?.string() ?: throw IllegalStateException("empty body")
             }
 
-            val feed = Gson().fromJson(body, FeedRemoteData::class.java)
-                ?: throw IllegalStateException("unparseable feed")
-
-            val itens = feed.itens ?: emptyList()
-            var descartados = 0
-            val agora = System.currentTimeMillis()
-            val entities = itens.mapNotNull { item ->
-                val fonte = item.fonte?.trim().orEmpty()
-                val fonteUrl = item.fonteUrl?.trim().orEmpty()
-                val dataRef = item.dataReferencia?.trim().orEmpty()
-                val texto = item.texto?.trim().orEmpty()
-                if (fonte.isEmpty() || fonteUrl.isEmpty() || dataRef.isEmpty() || texto.isEmpty()) {
-                    descartados++
-                    return@mapNotNull null
-                }
-                FeedItemEntity(
-                    id = "${item.tipo ?: "destaque"}_${item.id}",
-                    tipo = item.tipo ?: "destaque",
-                    titulo = item.titulo?.trim().orEmpty(),
-                    texto = texto,
-                    fonte = fonte,
-                    fonteUrl = fonteUrl,
-                    dataReferencia = dataRef,
-                    ativo = item.ativo ?: true,
-                    atualizadoEm = agora
-                )
-            }
-
+            val (entities, descartados) = parseFeed(body, agora)
             // Replace unconditionally: an emptied remote feed must empty the app.
             feedDao.replaceAll(entities)
-
-            val erro = if (descartados > 0) "$descartados itens sem fonte descartados" else ""
             syncLogDao.insert(
                 SyncLogEntity(
                     worker = "feed",
                     timestamp = agora,
                     success = true,
                     itemsChanged = entities.size,
-                    error = erro
+                    error = if (descartados > 0) "$descartados itens sem fonte descartados" else ""
                 )
             )
             return Result.success()
         } catch (e: Exception) {
+            // Remote unreachable (e.g. repo privado -> 404). Seed from the feed
+            // bundled in the APK so the curated content still shows, but only
+            // when we have nothing yet: a reachable remote must always override.
+            return seedFromAssetIfEmpty(agora, e)
+        }
+    }
+
+    private suspend fun seedFromAssetIfEmpty(agora: Long, cause: Exception): Result {
+        return try {
+            if (feedDao.getAtivos().isNotEmpty()) {
+                syncLogDao.insert(
+                    SyncLogEntity(
+                        worker = "feed",
+                        timestamp = agora,
+                        success = false,
+                        error = "remoto indisponivel (${cause.message}); cache mantido"
+                    )
+                )
+                return Result.retry()
+            }
+            val body = applicationContext.assets.open(ASSET_FEED)
+                .bufferedReader(Charsets.UTF_8).use { it.readText() }
+            val (entities, _) = parseFeed(body, agora)
+            feedDao.replaceAll(entities)
             syncLogDao.insert(
                 SyncLogEntity(
                     worker = "feed",
-                    timestamp = System.currentTimeMillis(),
-                    success = false,
-                    error = "${e.javaClass.simpleName}: ${e.message ?: "unknown"}"
+                    timestamp = agora,
+                    success = true,
+                    itemsChanged = entities.size,
+                    error = "feed local (remoto indisponivel)"
                 )
             )
-            return Result.retry()
+            Result.success()
+        } catch (e2: Exception) {
+            syncLogDao.insert(
+                SyncLogEntity(
+                    worker = "feed",
+                    timestamp = agora,
+                    success = false,
+                    error = "${e2.javaClass.simpleName}: ${e2.message ?: "unknown"}"
+                )
+            )
+            Result.retry()
         }
+    }
+
+    /** Parses a feed body and drops every item missing fonte + fonte_url + data_referencia + texto. */
+    private fun parseFeed(body: String, agora: Long): Pair<List<FeedItemEntity>, Int> {
+        val feed = Gson().fromJson(body, FeedRemoteData::class.java)
+            ?: throw IllegalStateException("unparseable feed")
+        val itens = feed.itens ?: emptyList()
+        var descartados = 0
+        val entities = itens.mapNotNull { item ->
+            val fonte = item.fonte?.trim().orEmpty()
+            val fonteUrl = item.fonteUrl?.trim().orEmpty()
+            val dataRef = item.dataReferencia?.trim().orEmpty()
+            val texto = item.texto?.trim().orEmpty()
+            if (fonte.isEmpty() || fonteUrl.isEmpty() || dataRef.isEmpty() || texto.isEmpty()) {
+                descartados++
+                return@mapNotNull null
+            }
+            FeedItemEntity(
+                id = "${item.tipo ?: "destaque"}_${item.id}",
+                tipo = item.tipo ?: "destaque",
+                titulo = item.titulo?.trim().orEmpty(),
+                texto = texto,
+                fonte = fonte,
+                fonteUrl = fonteUrl,
+                dataReferencia = dataRef,
+                ativo = item.ativo ?: true,
+                atualizadoEm = agora
+            )
+        }
+        return entities to descartados
     }
 }
 

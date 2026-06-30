@@ -1,0 +1,66 @@
+{
+  "versao": 4,
+  "atualizado": "2026-06-29",
+  "itens": [
+    {
+      "id": 1,
+      "tipo": "destaque",
+      "titulo": "A cesta básica do mês",
+      "texto": "Em 2010, R$ 265 fechavam a cesta básica do mês em São Paulo. Em abril de 2026, a mesma cesta custa R$ 906. São R$ 7.692 a mais por ano saindo do seu bolso. Subiu com Lula, Dilma, Temer, Bolsonaro e Lula.",
+      "fonte": "DIEESE, cesta básica de São Paulo, abr/2026",
+      "fonte_url": "https://www.dieese.org.br/analisecestabasica/2026/202604cestabasica.pdf",
+      "data_referencia": "2026-04-30",
+      "ativo": true
+    },
+    {
+      "id": 2,
+      "tipo": "destaque",
+      "titulo": "O salário mínimo que cabe x o que custa viver",
+      "texto": "O salário mínimo vale R$ 1.621 desde janeiro de 2026 (Decreto 12.797/2025). O DIEESE calcula todo mês quanto ele precisaria ser pra uma família de quatro pessoas viver: em abril de 2026, deu R$ 7.612,49. É 4,7 vezes o mínimo oficial. A diferença quem cobre é você.",
+      "fonte": "DIEESE, Salário Mínimo Necessário, abr/2026",
+      "fonte_url": "https://www.dieese.org.br/analisecestabasica/salarioMinimo.html",
+      "data_referencia": "2026-04-30",
+      "ativo": true
+    },
+    {
+      "id": 3,
+      "tipo": "destaque",
+      "titulo": "O litro da gasolina",
+      "texto": "Em 2010, o litro da gasolina custava R$ 2,57. Em junho de 2026, o preço médio no Brasil é R$ 6,61. Encher 40 litros pulou de R$ 103 para R$ 264. A mesma viagem, quase três vezes a conta. Subiu em todos os governos.",
+      "fonte": "ANP, preço médio de revenda da gasolina comum no Brasil, jun/2026",
+      "fonte_url": "https://www.gov.br/anp/pt-br/assuntos/precos-e-defesa-da-concorrencia/precos/precos-revenda-e-de-distribuicao-combustiveis",
+      "data_referencia": "2026-06-15",
+      "ativo": true
+    },
+    {
+      "id": 4,
+      "tipo": "destaque",
+      "titulo": "O botijão de gás",
+      "texto": "Em 2010, o botijão de gás de 13kg custava R$ 38. Em maio de 2026, o preço médio no Brasil é R$ 115. Quem troca um por mês paga R$ 918 a mais por ano só pra cozinhar. Subiu em todos os governos.",
+      "fonte": "ANP, preço médio de revenda do GLP 13kg no Brasil, mai/2026",
+      "fonte_url": "https://www.gov.br/anp/pt-br/assuntos/precos-e-defesa-da-concorrencia/precos/precos-revenda-e-de-distribuicao-combustiveis",
+      "data_referencia": "2026-05-31",
+      "ativo": true
+    },
+    {
+      "id": 5,
+      "tipo": "voce_sabia",
+      "titulo": "Você pode obrigar o Senado a analisar uma lei",
+      "texto": "Qualquer pessoa cadastra uma ideia de lei no portal e-Cidadania, do Senado. Se a ideia junta 20 mil apoios em 4 meses, ela vira sugestão legislativa e uma comissão é obrigada a analisar. Não é pedido: é gatilho previsto no regimento.",
+      "fonte": "Senado Federal, portal e-Cidadania",
+      "fonte_url": "https://www12.senado.leg.br/ecidadania",
+      "data_referencia": "2026-06-29",
+      "ativo": true
+    },
+    {
+      "id": 6,
+      "tipo": "voce_sabia",
+      "titulo": "Cada nota fiscal do mandato é pública",
+      "texto": "Além do salário, cada deputado federal tem a CEAP, uma cota mensal que banca passagem, combustível, escritório e divulgação. Cada nota fiscal é pública, item por item, no site da Câmara. A aba Deputados deste app abre esses gastos pra você conferir.",
+      "fonte": "Câmara dos Deputados, Cota Parlamentar (CEAP)",
+      "fonte_url": "https://www.camara.leg.br/cota-parlamentar/",
+      "data_referencia": "2026-06-29",
+      "ativo": true
+    }
+  ]
+}

@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.trouxaapp.app.ui.theme.Amber500
@@ -126,7 +127,13 @@ fun TemaChip(tema: String, modifier: Modifier = Modifier) {
             .background(SurfaceVariant)
             .padding(horizontal = 10.dp, vertical = 4.dp)
     ) {
-        Text(tema, color = OnSurfaceVariant, fontSize = 11.sp)
+        Text(
+            tema,
+            color = OnSurfaceVariant,
+            fontSize = 11.sp,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
     }
 }
 
@@ -143,7 +150,14 @@ fun TemperaturaBadge(valor: Int, modifier: Modifier = Modifier) {
             .background(Amber500.copy(alpha = 0.15f))
             .padding(horizontal = 10.dp, vertical = 4.dp)
     ) {
-        Text("EM MOVIMENTO", color = Amber500, fontSize = 10.sp, letterSpacing = 1.sp)
+        Text(
+            "EM MOVIMENTO",
+            color = Amber500,
+            fontSize = 10.sp,
+            letterSpacing = 1.sp,
+            maxLines = 1,
+            softWrap = false
+        )
     }
 }
 

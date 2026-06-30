@@ -290,7 +290,7 @@ private fun LeiCard(lei: LeiEntity, onClick: () -> Unit) {
                     color = OnSurface
                 )
             }
-            if (lei.tema.isNotBlank()) TemaChip(lei.tema)
+            if (lei.tema.isNotBlank()) TemaChip(lei.tema, Modifier.weight(1f, fill = false))
             TemperaturaBadge(lei.temperatura)
         }
 
