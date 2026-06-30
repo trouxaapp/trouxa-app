@@ -117,9 +117,9 @@ class DailyNotificationWorker @AssistedInject constructor(
         if (partes.isEmpty()) return Result.success()
 
         val corpo = partes.joinToString(" · ").replaceFirstChar { it.uppercase(ptBr) } +
-            ". Fontes: Câmara dos Deputados e Banco Central."
+            ". Toque pra ver o que isso muda no seu mês. Fontes: Câmara dos Deputados e Banco Central."
 
-        sendNotification("Resumo do dia", corpo)
+        sendNotification("O que mexeu hoje", corpo)
         prefs.lastDigestDay = dayStamp
         return Result.success()
     }

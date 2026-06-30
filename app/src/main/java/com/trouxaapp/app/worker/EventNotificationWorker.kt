@@ -94,8 +94,9 @@ class EventNotificationWorker @AssistedInject constructor(
                     }
                 }
                 notify(
-                    titulo = "Projeto em movimento na Câmara",
-                    corpo = "${nova.siglaTipo} ${nova.numero}/${nova.ano}: ${nova.tituloPopular}. Apresentado por $autor.",
+                    titulo = if (nova.tema.isNotBlank()) "${nova.tema}: um projeto andando na Câmara"
+                             else "Um projeto andando na Câmara",
+                    corpo = "${nova.siglaTipo} ${nova.numero}/${nova.ano} — ${nova.tituloPopular}. Autor: $autor. Toque pra ver o que muda.",
                     plId = nova.plId
                 )
                 prefs.lastSeenLeiId = maxId
@@ -116,10 +117,10 @@ class EventNotificationWorker @AssistedInject constructor(
             val anterior = prefs.lastSeenSelic
             if (anterior > 0f && abs(selic.valor - anterior) >= 0.05) {
                 notify(
-                    titulo = "Selic mudou",
+                    titulo = "A Selic mudou, e ela mexe no seu crédito",
                     corpo = String.format(
                         Locale("pt", "BR"),
-                        "De %.2f%% pra %.2f%% ao ano. Decisão do Copom, dado do Banco Central de %s.",
+                        "Foi de %.2f%% pra %.2f%% ao ano. A Selic é o juro base do país: puxa o que você paga em cartão, cheque especial e financiamento. Decisão do Copom (Banco Central, %s).",
                         anterior, selic.valor, selic.data
                     ),
                     plId = 0
@@ -139,10 +140,10 @@ class EventNotificationWorker @AssistedInject constructor(
                 val variacao = (dolar.valor - anterior) / anterior * 100
                 if (abs(variacao) >= 2.0) {
                     notify(
-                        titulo = "Dólar se mexeu",
+                        titulo = "O dólar se mexeu, e ele puxa preço",
                         corpo = String.format(
                             Locale("pt", "BR"),
-                            "De R$ %.2f pra R$ %.2f (%+.1f%%). Cotação PTAX do Banco Central de %s.",
+                            "De R$ %.2f pra R$ %.2f (%+.1f%%). O dólar empurra o preço de combustível, comida e eletrônico. Cotação PTAX (Banco Central, %s).",
                             anterior, dolar.valor, variacao, dolar.data
                         ),
                         plId = 0
