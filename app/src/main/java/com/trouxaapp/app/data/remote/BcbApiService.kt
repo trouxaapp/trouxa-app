@@ -25,6 +25,20 @@ interface BcbApiService {
         @Query("formato") formato: String = "json"
     ): List<BcbDataPoint>
 
+    /**
+     * Date-bounded window. The SGS caps ultimos/{n} at 20 points and
+     * forward-fills some series (Selic meta, salario minimo) weeks ahead,
+     * so bounding by dataFinal = today is the only reliable way to get
+     * "the value in force now". Dates are dd/MM/yyyy.
+     */
+    @GET("dados/serie/bcdata.sgs.{codigo}/dados")
+    suspend fun getSeriePeriodo(
+        @Path("codigo") codigo: Int,
+        @Query("dataInicial") dataInicial: String,
+        @Query("dataFinal") dataFinal: String,
+        @Query("formato") formato: String = "json"
+    ): List<BcbDataPoint>
+
     companion object {
         const val BASE_URL = "https://api.bcb.gov.br/"
         const val DOLAR = 1

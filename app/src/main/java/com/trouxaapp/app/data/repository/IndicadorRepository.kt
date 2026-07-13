@@ -63,12 +63,16 @@ class IndicadorRepository @Inject constructor(
         var updated = 0
         val fmtBcb = SimpleDateFormat("dd/MM/yyyy", Locale.US)
         val hoje = System.currentTimeMillis()
+        // 90 days back covers monthly series published with a lag (IPCA 12M
+        // shows up ~6 weeks after its reference date). dataFinal = today keeps
+        // forward-filled series (Selic meta, salario minimo) honest. The
+        // ultimos/{n} endpoint caps n at 20 and can be all-future on Selic,
+        // so the date-bounded query is the reliable path.
+        val dataFinal = fmtBcb.format(java.util.Date(hoje))
+        val dataInicial = fmtBcb.format(java.util.Date(hoje - TimeUnit.DAYS.toMillis(90)))
         for ((serie, nome) in SERIES) {
             try {
-                // 45 points: Selic 432 is a DAILY series forward-filled ~1 month
-                // ahead, so 13 points can be entirely in the future and the
-                // filter below would drop the whole series.
-                val ponto = bcbApi.getSerieUltimos(serie, 45)
+                val ponto = bcbApi.getSeriePeriodo(serie, dataInicial, dataFinal)
                     .mapNotNull { p ->
                         val ts = try { fmtBcb.parse(p.data)?.time } catch (_: Exception) { null }
                         if (ts != null && ts <= hoje) p to ts else null
