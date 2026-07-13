@@ -14,6 +14,7 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import java.util.concurrent.TimeUnit
 
 /**
  * Pulls curated content from the app repo (feed/feed.json, schema v3).
@@ -40,6 +41,8 @@ class FeedSyncWorker @AssistedInject constructor(
 
     override suspend fun doWork(): Result {
         val agora = System.currentTimeMillis()
+        // Keep the telemetry table bounded; without this it grows forever.
+        syncLogDao.purgeOlderThan(agora - TimeUnit.DAYS.toMillis(7))
 
         // Remote is authoritative: when it answers, it wins and can retract content.
         try {
@@ -62,26 +65,29 @@ class FeedSyncWorker @AssistedInject constructor(
                 )
             )
             return Result.success()
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             // Remote unreachable (e.g. repo privado -> 404). Seed from the feed
             // bundled in the APK so the curated content still shows, but only
             // when we have nothing yet: a reachable remote must always override.
-            return seedFromAssetIfEmpty(agora, e)
+            return seedFromAssetIfEmpty(agora)
         }
     }
 
-    private suspend fun seedFromAssetIfEmpty(agora: Long, cause: Exception): Result {
+    private suspend fun seedFromAssetIfEmpty(agora: Long): Result {
         return try {
             if (feedDao.getAtivos().isNotEmpty()) {
+                // Content is intact, so this run is healthy. Retrying here is
+                // pointless (a private repo 404s forever) and every retry used
+                // to write another failure row, flooding the health panel.
                 syncLogDao.insert(
                     SyncLogEntity(
                         worker = "feed",
                         timestamp = agora,
-                        success = false,
-                        error = "remoto indisponivel (${cause.message}); cache mantido"
+                        success = true,
+                        error = "remoto indisponível; usando conteúdo local"
                     )
                 )
-                return Result.retry()
+                return Result.success()
             }
             val body = applicationContext.assets.open(ASSET_FEED)
                 .bufferedReader(Charsets.UTF_8).use { it.readText() }

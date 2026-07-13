@@ -46,7 +46,9 @@ class SettingsViewModel @Inject constructor(
     )
     val state: StateFlow<SettingsUiState> = _state
 
-    val syncLogs: StateFlow<List<SyncLogEntity>> = syncLogDao.observeRecent(12)
+    // One row per data source (latest run of each worker). The old raw list
+    // of the last 12 rows filled up with retry entries of a single worker.
+    val syncLogs: StateFlow<List<SyncLogEntity>> = syncLogDao.observeLatestPerWorker()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     fun setUf(uf: String) {

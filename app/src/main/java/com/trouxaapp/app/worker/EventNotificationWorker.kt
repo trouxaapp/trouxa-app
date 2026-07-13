@@ -82,11 +82,17 @@ class EventNotificationWorker @AssistedInject constructor(
         val agora = System.currentTimeMillis()
         if (agora - prefs.lastEventNotifTimestamp < THROTTLE_MS) return Result.success()
 
-        // Priority 1: new bill with real activity
-        val maxId = leiDao.maxId() ?: 0
-        if (maxId > prefs.lastSeenLeiId) {
-            val nova = leiDao.getById(maxId)
-            if (nova != null && nova.temperatura >= TEMPERATURA_MINIMA) {
+        // Priority 1: new bill with real activity. Every bill past the cursor
+        // is considered, not just MAX(plId): several can land between runs,
+        // and a cold newest must not bury a hot older one. The hottest wins,
+        // ties broken by the newest id.
+        val novas = leiDao.newerThan(prefs.lastSeenLeiId)
+        if (novas.isNotEmpty()) {
+            val maxIdVisto = novas.maxOf { it.plId }
+            val nova = novas
+                .filter { it.temperatura >= TEMPERATURA_MINIMA }
+                .maxWithOrNull(compareBy({ it.temperatura }, { it.plId }))
+            if (nova != null) {
                 val autor = buildString {
                     append(nova.autorNome.ifBlank { "autoria não informada" })
                     if (nova.autorPartido.isNotBlank() && nova.autorUf.isNotBlank()) {
@@ -96,18 +102,16 @@ class EventNotificationWorker @AssistedInject constructor(
                 notify(
                     titulo = if (nova.tema.isNotBlank()) "${nova.tema}: um projeto andando na Câmara"
                              else "Um projeto andando na Câmara",
-                    corpo = "${nova.siglaTipo} ${nova.numero}/${nova.ano} — ${nova.tituloPopular}. Autor: $autor. Toque pra ver o que muda.",
+                    corpo = "${nova.siglaTipo} ${nova.numero}/${nova.ano}: ${nova.tituloPopular}. Autor: $autor. Toque pra ver o que muda.",
                     plId = nova.plId
                 )
-                prefs.lastSeenLeiId = maxId
+                prefs.lastSeenLeiId = maxIdVisto
                 prefs.lastEventNotifTimestamp = agora
                 return Result.success()
             }
-            // Low-activity bills advance the cursor without a push;
-            // they are still visible in the feed.
-            if (nova != null && nova.temperatura < TEMPERATURA_MINIMA) {
-                prefs.lastSeenLeiId = maxId
-            }
+            // Only low-activity bills this round: advance the cursor without
+            // a push; they are still visible in the feed.
+            prefs.lastSeenLeiId = maxIdVisto
         }
 
         // Priority 2: Selic change. Both sides of the comparison must be

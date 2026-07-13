@@ -1,8 +1,6 @@
 package com.trouxaapp.app.ui.screens.settings
 
 import android.Manifest
-import android.content.Intent
-import android.net.Uri
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -26,7 +24,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.DeleteOutline
@@ -80,14 +77,25 @@ private val UFS = listOf(
     "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO"
 )
 
-private const val GITHUB_URL = "https://github.com/trouxaapp/trouxa-app"
-
 // Worker ids come from SyncLogEntity.worker; unknown ids fall back to the raw id
 private fun workerLabel(worker: String): String = when (worker) {
     "law" -> "Projetos da Câmara"
     "indicador" -> "Indicadores do BCB"
     "feed" -> "Curadoria"
     else -> worker
+}
+
+// Workers store raw diagnostics ("UnknownHostException: ..."), which mean
+// nothing to the user. Known patterns get a plain-language line; anything
+// unknown is still shown as stored, no sugarcoating.
+private fun humanizeSyncError(error: String): String = when {
+    error.contains("UnknownHostException") ->
+        "Sem internet no momento da sincronização."
+    error.contains("HTTP 404") || error.contains("remoto indispon") ->
+        "Conteúdo remoto indisponível. Usando dados locais."
+    error.contains("SocketTimeout") || error.contains("timeout", ignoreCase = true) ->
+        "O servidor demorou para responder."
+    else -> error
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -100,7 +108,6 @@ fun SettingsScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val syncLogs by viewModel.syncLogs.collectAsStateWithLifecycle()
-    val context = LocalContext.current
 
     var showClearDialog by remember { mutableStateOf(false) }
 
@@ -279,39 +286,27 @@ fun SettingsScreen(
                     onClick = onSobreClick
                 )
                 HorizontalDivider(color = CardBorder, modifier = Modifier.padding(vertical = 4.dp))
+                // No repo link here: the repository is private, so pointing
+                // users at a 404 would be a false claim. Data sources instead.
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(8.dp))
-                        .clickable {
-                            runCatching {
-                                context.startActivity(
-                                    Intent(Intent.ACTION_VIEW, Uri.parse(GITHUB_URL))
-                                )
-                            }
-                        }
                         .padding(vertical = 10.dp, horizontal = 4.dp)
                 ) {
                     Column(Modifier.weight(1f)) {
                         Text(
-                            "Código aberto",
+                            "Fontes dos dados",
                             style = MaterialTheme.typography.titleMedium,
                             color = OnSurface
                         )
                         Text(
-                            "github.com/trouxaapp/trouxa-app",
+                            "Câmara dos Deputados e Banco Central",
                             style = MaterialTheme.typography.bodySmall,
                             color = OnSurfaceVariant,
                             modifier = Modifier.padding(top = 2.dp)
                         )
                     }
-                    Icon(
-                        Icons.AutoMirrored.Filled.OpenInNew,
-                        contentDescription = null,
-                        tint = OnSurfaceFaint,
-                        modifier = Modifier.size(18.dp)
-                    )
                 }
                 AppVersionCaption()
             }
@@ -462,12 +457,13 @@ private fun SyncLogRow(log: SyncLogEntity) {
                 style = MaterialTheme.typography.bodySmall,
                 color = OnSurfaceVariant
             )
-            // Real error text from the worker, shown as-is. No sugarcoating.
+            // Known raw diagnostics are translated to plain language; an
+            // informational note on a successful run is not painted red.
             if (log.error.isNotBlank()) {
                 Text(
-                    log.error,
+                    humanizeSyncError(log.error),
                     style = MaterialTheme.typography.bodySmall,
-                    color = Red400,
+                    color = if (log.success) OnSurfaceVariant else Red400,
                     modifier = Modifier.padding(top = 2.dp)
                 )
             }

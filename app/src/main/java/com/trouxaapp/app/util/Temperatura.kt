@@ -17,9 +17,6 @@ object Temperatura {
 
     data class Resultado(val valor: Int, val motivos: List<String>)
 
-    private val isoDateTime = SimpleDateFormat("yyyy-MM-dd'T'HH:mm", Locale.US)
-    private val isoDate = SimpleDateFormat("yyyy-MM-dd", Locale.US)
-
     fun compute(
         siglaTipo: String,
         dataApresentacao: String,
@@ -72,11 +69,16 @@ object Temperatura {
         return Resultado(valor = minOf(100, pontos), motivos = motivos)
     }
 
+    // SimpleDateFormat is not thread-safe and compute() runs from up to 6
+    // parallel sync coroutines, so the formats are created per call instead
+    // of shared as object-level fields.
     private fun parseDate(s: String): Long? {
         if (s.isBlank()) return null
         return try {
-            if (s.length >= 16 && s.contains('T')) isoDateTime.parse(s.take(16))?.time
-            else isoDate.parse(s.take(10))?.time
+            if (s.length >= 16 && s.contains('T'))
+                SimpleDateFormat("yyyy-MM-dd'T'HH:mm", Locale.US).parse(s.take(16))?.time
+            else
+                SimpleDateFormat("yyyy-MM-dd", Locale.US).parse(s.take(10))?.time
         } catch (_: Exception) {
             null
         }

@@ -10,6 +10,7 @@ import com.trouxaapp.app.data.local.SyncLogEntity
 import com.trouxaapp.app.data.repository.LeisRepository
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
+import java.util.concurrent.TimeUnit
 
 /**
  * Syncs bills from the Camara: new bills, curation overrides, tramitacao
@@ -25,6 +26,8 @@ class LawSyncWorker @AssistedInject constructor(
 ) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
+        // Keep the telemetry table bounded; without this it grows forever.
+        syncLogDao.purgeOlderThan(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(7))
         return try {
             val r = repo.syncAll()
             syncLogDao.insert(

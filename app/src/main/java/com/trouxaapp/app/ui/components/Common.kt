@@ -103,9 +103,14 @@ fun formatRelative(timestamp: Long, agora: Long = System.currentTimeMillis()): S
     }
 }
 
-/** Formats ISO dates (2026-06-09 or 2026-06-09T14:30) as dd/MM/yyyy [HH:mm]. */
+/**
+ * Formats ISO dates (2026-06-09 or 2026-06-09T14:30) as dd/MM/yyyy [HH:mm].
+ * BCB SGS dates already arrive as dd/MM/yyyy, which is the display format,
+ * so they pass through unchanged instead of falling into the catch below.
+ */
 fun formatIsoDate(iso: String): String {
     if (iso.isBlank()) return ""
+    if (Regex("""^\d{2}/\d{2}/\d{4}$""").matches(iso)) return iso
     return try {
         if (iso.length >= 16 && iso.contains('T')) {
             val d = SimpleDateFormat("yyyy-MM-dd'T'HH:mm", Locale.US).parse(iso.take(16))

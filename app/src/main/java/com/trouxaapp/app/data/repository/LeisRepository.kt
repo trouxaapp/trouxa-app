@@ -15,6 +15,7 @@ import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import java.text.Normalizer
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -90,13 +91,16 @@ class LeisRepository @Inject constructor(
 
         // If the listing itself fails we want the worker to see the exception
         // and log a failed sync, not a green check over an empty run.
+        // siglaTipo filters server-side so the 300-row window is not wasted
+        // on requerimentos and other types we would drop here anyway.
         val paginas = (1..3).map { pagina ->
             async {
                 camaraApi.getProposicoes(
                     itens = 100,
                     pagina = pagina,
                     dataApresentacaoInicio = dataInicio,
-                    dataApresentacaoFim = dataFim
+                    dataApresentacaoFim = dataFim,
+                    siglaTipo = TIPOS.joinToString(",")
                 ).dados ?: emptyList()
             }
         }.awaitAll().flatten()
@@ -104,6 +108,7 @@ class LeisRepository @Inject constructor(
         val candidatas = paginas
             .distinctBy { it.id }
             .filter { (it.siglaTipo ?: "") in TIPOS }
+            .filterNot { isPdlDeConcessao(it.siglaTipo ?: "", it.ementa ?: "") }
 
         val limiter = Semaphore(6)
         var falhas = 0
@@ -122,6 +127,21 @@ class LeisRepository @Inject constructor(
             }
         }.awaitAll()
         Pair(resultados.count { it }, falhas)
+    }
+
+    /**
+     * Broadcast-license PDLs ("Aprova o ato que renova/outorga/autoriza a
+     * concessão de rádio/TV...") arrive in batches of dozens per day and are
+     * administrative noise for this feed. Treaty and veto-sustaining PDLs do
+     * not start with these phrases and are kept.
+     */
+    private fun isPdlDeConcessao(siglaTipo: String, ementa: String): Boolean {
+        if (siglaTipo != "PDL") return false
+        val e = Normalizer.normalize(ementa.trim().lowercase(Locale("pt", "BR")), Normalizer.Form.NFD)
+            .replace(Regex("""\p{Mn}+"""), "")
+        return e.startsWith("aprova o ato que renova") ||
+            e.startsWith("aprova o ato que outorga") ||
+            e.startsWith("aprova o ato que autoriza")
     }
 
     private suspend fun processProposicao(id: Int, siglaTipo: String, numero: Int, ano: Int, ementaLista: String) {

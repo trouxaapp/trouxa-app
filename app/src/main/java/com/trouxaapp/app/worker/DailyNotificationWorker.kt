@@ -109,7 +109,8 @@ class DailyNotificationWorker @AssistedInject constructor(
         }
         indicadorRepo.getBySerie(BcbApiService.SELIC)?.let {
             if (!indicadorRepo.isStale(it)) {
-                partes.add(String.format(ptBr, "Selic %.2f%% ao ano", it.valor))
+                // Same contract as the dolar line: value + official reference date
+                partes.add(String.format(ptBr, "Selic %.2f%% ao ano (Copom %s)", it.valor, it.data))
             }
         }
 

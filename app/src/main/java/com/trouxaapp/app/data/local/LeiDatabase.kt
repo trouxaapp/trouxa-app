@@ -100,6 +100,12 @@ interface LeiDao {
     @Query("SELECT MAX(plId) FROM leis")
     suspend fun maxId(): Int?
 
+    // Every bill past the notification cursor. The event worker must look at
+    // ALL of them, not just MAX(plId): several bills land between runs and a
+    // cold newest must not bury a hot older one.
+    @Query("SELECT * FROM leis WHERE plId > :id")
+    suspend fun newerThan(id: Int): List<LeiEntity>
+
     @Query("SELECT plId FROM leis ORDER BY dataApresentacao DESC LIMIT :n")
     suspend fun idsMaisRecentes(n: Int): List<Int>
 
@@ -321,6 +327,16 @@ interface SyncLogDao {
 
     @Query("SELECT * FROM sync_log ORDER BY timestamp DESC LIMIT :n")
     fun observeRecent(n: Int = 20): Flow<List<SyncLogEntity>>
+
+    // One row per data source for the health panel: the latest entry of each
+    // worker, instead of the last N raw rows (retries used to flood the list).
+    @Query("""
+        SELECT * FROM sync_log s
+        WHERE timestamp = (SELECT MAX(timestamp) FROM sync_log WHERE worker = s.worker)
+        GROUP BY worker
+        ORDER BY worker
+    """)
+    fun observeLatestPerWorker(): Flow<List<SyncLogEntity>>
 
     @Query("DELETE FROM sync_log WHERE timestamp < :cutoff")
     suspend fun purgeOlderThan(cutoff: Long)

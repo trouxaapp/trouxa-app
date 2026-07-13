@@ -150,8 +150,12 @@ object LawClassifier {
         t = t.replace(
             Regex("""(Lei|Decreto|Decreto-Lei)\s*n[ºo°.]*\s*([\d.]+),?\s*de\s*\d{1,2}[ºo°]?\s*de\s*\p{L}+\s*de\s*(\d{4})""", RegexOption.IGNORE_CASE)
         ) { m -> "${m.groupValues[1]} ${m.groupValues[2]}/${m.groupValues[3]}" }
-        // Leftover "nº" markers
-        t = t.replace(Regex("""\s*n[ºo°.]+\s*"""), " ")
+        // Leftover law-number markers: a standalone "nº"/"n."/"no" token is
+        // only stripped when a digit follows ("Lei no 14.133" -> "Lei 14.133").
+        // The token must start at a word edge and the digit requirement is a
+        // lookahead, so words that merely contain n+o survive intact
+        // ("norma", "governo", "no Brasil" are all kept as-is).
+        t = t.replace(Regex("""(?<=\s|^)[nN][ºo°.]{1,2}\s*(?=\d)"""), "")
         // Parenthetical legislature references add noise on cards
         t = t.replace(Regex("""\s{2,}"""), " ").trim()
         return t
