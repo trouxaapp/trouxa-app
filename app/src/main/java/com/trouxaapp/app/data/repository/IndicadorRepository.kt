@@ -65,7 +65,10 @@ class IndicadorRepository @Inject constructor(
         val hoje = System.currentTimeMillis()
         for ((serie, nome) in SERIES) {
             try {
-                val ponto = bcbApi.getSerieUltimos(serie, 13)
+                // 45 points: Selic 432 is a DAILY series forward-filled ~1 month
+                // ahead, so 13 points can be entirely in the future and the
+                // filter below would drop the whole series.
+                val ponto = bcbApi.getSerieUltimos(serie, 45)
                     .mapNotNull { p ->
                         val ts = try { fmtBcb.parse(p.data)?.time } catch (_: Exception) { null }
                         if (ts != null && ts <= hoje) p to ts else null
