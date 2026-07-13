@@ -25,6 +25,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.outlined.AlternateEmail
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Button
@@ -128,6 +129,8 @@ fun LeiDetailScreen(
     val identificacao = "${lei.siglaTipo} ${lei.numero}/${lei.ano}"
     val fichaUrl = "https://www.camara.leg.br/proposicoesWeb/fichadetramitacao?idProposicao=${lei.plId}"
     val titulo = lei.tituloPopular.ifBlank { lei.ementa }
+    // Email bodies want a short label, not a whole ementa paragraph
+    val tituloCurto = if (titulo.length > 120) titulo.take(119).trimEnd() + "…" else titulo
 
     Scaffold(
         containerColor = Background,
@@ -237,6 +240,96 @@ fun LeiDetailScreen(
                         autores.forEach { autor -> AutorRow(autor) }
                     }
                 }
+            }
+
+            // One-tap pressure. Every message is pre-written, polite and
+            // editable: it asks for a position on a public bill, nothing else.
+            Column {
+                SectionLabel("Cobrar quem decide")
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    if (lei.autorEmail.isNotBlank()) {
+                        OutlinedButton(
+                            onClick = {
+                                val assunto = "Sobre o $identificacao"
+                                val corpo = "Deputado(a) ${lei.autorNome},\n\n" +
+                                    "Sou eleitor(a) e estou acompanhando o $identificacao: $tituloCurto.\n\n" +
+                                    "Queria entender a sua posição sobre esse projeto e o que ele " +
+                                    "muda na prática pra quem paga a conta.\n\n" +
+                                    "Aguardo retorno."
+                                val mailto = "mailto:${Uri.encode(lei.autorEmail)}" +
+                                    "?subject=${Uri.encode(assunto)}&body=${Uri.encode(corpo)}"
+                                runCatching {
+                                    context.startActivity(
+                                        Intent(Intent.ACTION_SENDTO).apply { data = Uri.parse(mailto) }
+                                    )
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Icon(
+                                Icons.Outlined.Email,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Text("Cobrar por e-mail")
+                        }
+                    }
+                    OutlinedButton(
+                        onClick = {
+                            // Plain-text name only, never a guessed handle:
+                            // tagging the wrong account is worse than no tag.
+                            val pergunta = if (lei.autorEmail.isNotBlank()) {
+                                "Deputado(a) ${lei.autorNome}, qual a sua posição sobre o " +
+                                    "$identificacao? Estou acompanhando. $fichaUrl"
+                            } else {
+                                "A quem decide: qual a posição sobre o $identificacao? $fichaUrl"
+                            }
+                            runCatching {
+                                context.startActivity(
+                                    Intent(
+                                        Intent.ACTION_VIEW,
+                                        Uri.parse(
+                                            "https://twitter.com/intent/tweet?text=${Uri.encode(pergunta)}"
+                                        )
+                                    )
+                                )
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(
+                            Icons.Outlined.AlternateEmail,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text("Perguntar no X")
+                    }
+                    OutlinedButton(
+                        onClick = {
+                            val texto = "$identificacao: $titulo. Ficha oficial: $fichaUrl"
+                            val send = Intent(Intent.ACTION_SEND).apply {
+                                type = "text/plain"
+                                putExtra(Intent.EXTRA_TEXT, texto)
+                            }
+                            runCatching { context.startActivity(Intent.createChooser(send, null)) }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(
+                            Icons.Default.Share,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text("Mandar pra alguém")
+                    }
+                }
+                Caption(
+                    "Mensagens prontas e educadas. Dá pra revisar tudo antes de enviar.",
+                    modifier = Modifier.padding(top = 8.dp)
+                )
             }
 
             // Current status, always rendered: missing movement is information too
@@ -366,31 +459,6 @@ fun LeiDetailScreen(
                         )
                         Spacer(Modifier.width(8.dp))
                         Text("Ler texto completo (inteiro teor)")
-                    }
-                }
-                if (lei.autorEmail.isNotBlank()) {
-                    OutlinedButton(
-                        onClick = {
-                            val assunto = "Sobre o $identificacao"
-                            val corpo = "Olá. Sou eleitor(a) e acompanho o $identificacao ($titulo). " +
-                                "Gostaria de saber a sua posição sobre o projeto. Obrigado(a)."
-                            val mailto = "mailto:${Uri.encode(lei.autorEmail)}" +
-                                "?subject=${Uri.encode(assunto)}&body=${Uri.encode(corpo)}"
-                            runCatching {
-                                context.startActivity(
-                                    Intent(Intent.ACTION_SENDTO).apply { data = Uri.parse(mailto) }
-                                )
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Icon(
-                            Icons.Outlined.Email,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(Modifier.width(8.dp))
-                        Text("Perguntar a posição do autor por e-mail")
                     }
                 }
             }
