@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.trouxaapp.app.data.local.FeedDao
 import com.trouxaapp.app.data.local.FeedItemEntity
 import com.trouxaapp.app.data.local.IndicadorEntity
+import com.trouxaapp.app.data.painel.Painel
+import com.trouxaapp.app.data.painel.PainelRepository
 import com.trouxaapp.app.data.repository.IndicadorRepository
 import com.trouxaapp.app.data.repository.LeisRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -32,6 +34,7 @@ data class HojeUiState(
     val indicadores: List<IndicadorUi> = emptyList(),
     val destaques: List<FeedItemEntity> = emptyList(),
     val projetosNovosHoje: Int = -1, // -1 = unknown (cache not built yet)
+    val painel: Painel? = null,
     val isRefreshing: Boolean = false
 )
 
@@ -39,6 +42,7 @@ data class HojeUiState(
 class HojeViewModel @Inject constructor(
     private val indicadorRepo: IndicadorRepository,
     private val leisRepo: LeisRepository,
+    private val painelRepo: PainelRepository,
     feedDao: FeedDao
 ) : ViewModel() {
 
@@ -49,8 +53,9 @@ class HojeViewModel @Inject constructor(
         indicadorRepo.observeAll(),
         feedDao.observeAtivos(),
         projetosHoje,
-        refreshing
-    ) { inds, feed, novos, refr ->
+        refreshing,
+        painelRepo.painel
+    ) { inds, feed, novos, refr, painel ->
         HojeUiState(
             indicadores = inds.map { it.toUi() },
             // Every row of a sync shares one timestamp, so order by the feed's
@@ -59,12 +64,17 @@ class HojeViewModel @Inject constructor(
                 compareBy<FeedItemEntity>({ it.tipo != "destaque" }, { it.id.substringAfterLast('_').toIntOrNull() ?: 0 })
             ),
             projetosNovosHoje = novos,
+            painel = painel,
             isRefreshing = refr
         )
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), HojeUiState())
+    // Seed with the cached panel so the first frame is not the "no data" state while Room loads
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), HojeUiState(painel = painelRepo.painel.value))
 
     init {
         contarProjetosHoje()
+        // Market and Congress move during the day; older than this, refetch on open
+        val painel = painelRepo.painel.value
+        if (painel == null || System.currentTimeMillis() - painel.atualizadoEm > 20 * 60_000L) refresh()
     }
 
     private fun contarProjetosHoje() {
@@ -79,6 +89,7 @@ class HojeViewModel @Inject constructor(
         viewModelScope.launch {
             refreshing.value = true
             try { indicadorRepo.refresh() } catch (_: Exception) {}
+            try { painelRepo.atualizar() } catch (_: Exception) {}
             contarProjetosHoje()
             refreshing.value = false
         }

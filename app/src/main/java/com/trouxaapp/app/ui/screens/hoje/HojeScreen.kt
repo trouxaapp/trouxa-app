@@ -98,9 +98,89 @@ fun HojeScreen(
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // The sourced punches come first: they are what people share.
+                val painel = state.painel
+
+                // What happened today comes first; the long-run comparisons go below
+                item(key = "label_dinheiro") {
+                    SectionLabel("Dinheiro hoje")
+                }
+                if (painel != null && painel.mercado.isNotEmpty()) {
+                    items(painel.mercado, key = { "m_" + it.nome }) { IndicadorPainelCard(it) }
+                } else if (state.indicadores.isEmpty()) {
+                    item(key = "indicadores_vazio") {
+                        EmptyState(
+                            titulo = "Sem dados do Banco Central ainda",
+                            texto = "Puxa pra baixo pra atualizar. Aqui nunca aparece número inventado: ou é dado oficial com data, ou fica vazio."
+                        )
+                    }
+                } else {
+                    items(state.indicadores, key = { it.serie }) { indicador ->
+                        IndicadorCard(indicador)
+                    }
+                }
+
+                // Step values: when they last moved, and from what
+                if (painel != null && painel.parados.isNotEmpty()) {
+                    item(key = "label_parados") {
+                        SectionLabel("O que mudou e o que não mudou", Modifier.padding(top = 12.dp))
+                    }
+                    items(painel.parados, key = { "p_" + it.nome }) { IndicadorPainelCard(it) }
+                }
+
+                painel?.precos?.let { precos ->
+                    item(key = "label_precos") {
+                        SectionLabel("O que subiu de preço", Modifier.padding(top = 12.dp))
+                    }
+                    item(key = "precos") { PrecosCard(precos) }
+                }
+
+                // Congress: who voted what, what is on today
+                item(key = "label_congresso") {
+                    SectionLabel("Congresso", Modifier.padding(top = 12.dp))
+                }
+                val camaraHoje = painel?.camaraHoje
+                if (camaraHoje != null) {
+                    item(key = "camara_hoje") { CamaraHojeResumo(camaraHoje, state.projetosNovosHoje) }
+                } else if (state.projetosNovosHoje >= 0) {
+                    item(key = "camara_hoje") { CamaraHojeCard(state.projetosNovosHoje) }
+                }
+                if (painel != null && painel.votacoesCamara.isNotEmpty()) {
+                    item(key = "label_votacoes") {
+                        Nota("Últimas votações no Plenário da Câmara", Modifier.padding(top = 4.dp))
+                    }
+                    items(painel.votacoesCamara.take(6), key = { "v_" + it.data + it.descricao.hashCode() }) { VotacaoCard(it) }
+                }
+                painel?.senado?.let { senado ->
+                    item(key = "senado") { SenadoCard(senado) }
+                }
+
+                if (painel != null && painel.creditos.isNotEmpty()) {
+                    item(key = "label_creditos") {
+                        SectionLabel("Dinheiro fora do Orçamento", Modifier.padding(top = 12.dp))
+                    }
+                    item(key = "creditos") { CreditosCard(painel.creditos) }
+                }
+
+                painel?.eleicao?.let { eleicao ->
+                    item(key = "label_eleicao") {
+                        SectionLabel("Eleição 2026", Modifier.padding(top = 12.dp))
+                    }
+                    item(key = "eleicao") { EleicaoCard(eleicao) }
+                }
+
+                if (painel != null && painel.noticias.isNotEmpty()) {
+                    item(key = "label_noticias") {
+                        Column(modifier = Modifier.padding(top = 12.dp)) {
+                            SectionLabel("Notícias oficiais do dia")
+                            Nota("Agências públicas da Câmara, do Senado e da EBC. Toque pra ler na fonte.")
+                        }
+                    }
+                    items(painel.noticias.take(10), key = { "n_" + it.link }) { NoticiaLinha(it) }
+                }
+
+                // The sourced punches: what people share
                 item(key = "label_destaques") {
-                    SectionLabel("Destaques da curadoria")
+                    SectionLabel("Antes e agora", Modifier.padding(top = 12.dp))
                 }
                 if (state.destaques.isEmpty()) {
                     item(key = "destaques_vazio") {
@@ -115,32 +195,12 @@ fun HojeScreen(
                         DestaqueCard(destaque)
                     }
                 }
-                item(key = "label_indicadores") {
-                    SectionLabel("Indicadores oficiais", Modifier.padding(top = 12.dp))
-                }
-                if (state.indicadores.isEmpty()) {
-                    item(key = "indicadores_vazio") {
-                        EmptyState(
-                            titulo = "Sem dados do Banco Central ainda",
-                            texto = "Puxa pra baixo pra atualizar. Aqui nunca aparece número inventado: ou é dado oficial com data, ou fica vazio."
-                        )
-                    }
-                } else {
-                    items(state.indicadores, key = { it.serie }) { indicador ->
-                        IndicadorCard(indicador)
-                    }
-                }
 
-                // Only shown once the local law cache exists; -1 means unknown
-                if (state.projetosNovosHoje >= 0) {
-                    item(key = "camara_hoje") {
-                        Column {
-                            SectionLabel("Câmara hoje", Modifier.padding(top = 12.dp))
-                            CamaraHojeCard(state.projetosNovosHoje)
-                        }
+                if (painel != null) {
+                    item(key = "painel_atualizado") {
+                        AtualizadoEm(painel.atualizadoEm, "Painel", Modifier.padding(top = 8.dp))
                     }
                 }
-
             }
         }
     }

@@ -35,6 +35,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -62,6 +63,7 @@ import com.trouxaapp.app.ui.theme.OnSurface
 import com.trouxaapp.app.ui.theme.OnSurfaceFaint
 import com.trouxaapp.app.ui.theme.OnSurfaceVariant
 import com.trouxaapp.app.ui.theme.Red600
+import com.trouxaapp.app.util.LeiExplicada
 import com.trouxaapp.app.ui.theme.Surface
 import com.trouxaapp.app.ui.theme.SurfaceVariant
 
@@ -303,6 +305,29 @@ private fun LeiCard(lei: LeiEntity, onClick: () -> Unit) {
             maxLines = 3,
             overflow = TextOverflow.Ellipsis
         )
+
+        val explicacao = remember(lei.siglaTipo, lei.ementa) {
+            LeiExplicada.explicar(lei.siglaTipo, lei.ementa)
+        }
+        if (explicacao.valor.isNotBlank()) {
+            Text(
+                text = explicacao.valor.replace("R$ ", "R$ "),
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Black,
+                color = Red600,
+                modifier = Modifier.padding(top = 6.dp)
+            )
+        }
+        if (explicacao.emUmaFrase.isNotBlank()) {
+            Text(
+                text = explicacao.emUmaFrase,
+                style = MaterialTheme.typography.bodyMedium,
+                color = OnSurfaceVariant,
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.padding(top = 6.dp)
+            )
+        }
 
         if (lei.autorNome.isNotBlank()) {
             Spacer(Modifier.height(10.dp))

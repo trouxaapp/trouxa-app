@@ -43,6 +43,8 @@ import com.trouxaapp.app.ui.theme.CardBorder
 import com.trouxaapp.app.ui.theme.OnSurfaceFaint
 import com.trouxaapp.app.ui.theme.OnSurfaceVariant
 import com.trouxaapp.app.ui.theme.Red600
+import com.trouxaapp.app.util.FormatUtils.semAcento
+import com.trouxaapp.app.util.LeiExplicada
 
 private data class Verbete(
     val termo: String,
@@ -56,7 +58,7 @@ private const val URL_PROCESSO_LEGISLATIVO = "https://www.camara.leg.br/entenda-
 // Timeless institutional definitions only. Nothing here carries a current
 // value, a statistic or anything that ages. Where a term has a live value
 // (Selic, IPCA, PTAX, DIEESE), the value itself lives behind the source link.
-private val glossario = listOf(
+private val glossarioBase = listOf(
     Verbete(
         termo = "PL (Projeto de Lei)",
         definicao = "Proposta para criar uma lei nova ou mudar uma lei que já existe. " +
@@ -212,15 +214,21 @@ private val glossario = listOf(
     )
 )
 
+// Budget and legal jargon found in ementas, shared with the bill screen so
+// a term is never explained two different ways
+private val glossario = (glossarioBase + LeiExplicada.termosDoGlossario().map {
+    Verbete(it.termo, it.explicacao, it.fonteNome, it.fonteUrl)
+}).distinctBy { it.termo.substringBefore(" (") }
+
 @Composable
 fun EntendaScreen() {
     var busca by rememberSaveable { mutableStateOf("") }
 
     val filtrados = remember(busca) {
         if (busca.isBlank()) glossario
-        else glossario.filter {
-            it.termo.contains(busca, ignoreCase = true) ||
-                it.definicao.contains(busca, ignoreCase = true)
+        else {
+            val alvo = semAcento(busca.trim())
+            glossario.filter { semAcento(it.termo).contains(alvo) || semAcento(it.definicao).contains(alvo) }
         }
     }
 

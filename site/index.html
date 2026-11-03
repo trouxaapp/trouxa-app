@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trouxa: leis e dinheiro público sem juridiquês</title>
+<meta name="description" content="O que o Congresso votou, quanto custou e o que mudou no seu bolso. Direto das fontes oficiais, com data e link, sem opinião.">
+<meta property="og:title" content="Trouxa">
+<meta property="og:description" content="Leis e dinheiro público sem juridiquês. Direto das fontes oficiais, com data e link.">
+<meta name="theme-color" content="#0A0A0A">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230A0A0A'/%3E%3Ctext x='16' y='23' font-family='Arial Black,Arial' font-weight='900' font-size='20' fill='%23DC2626' text-anchor='middle'%3ET%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topo">
+  <div class="wrap">
+    <a class="marca" href="#">TROUXA</a>
+    <p class="sub">leis e dinheiro público, sem juridiquês</p>
+    <nav>
+      <a href="#dinheiro">Dinheiro</a>
+      <a href="#congresso">Congresso</a>
+      <a href="#leis">Leis da semana</a>
+      <a href="#orcamento">Fora do Orçamento</a>
+      <a href="#eleicao">Eleição</a>
+      <a href="#noticias">Notícias</a>
+      <a href="#palavras">Palavras difíceis</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <p class="regra">Tudo aqui vem direto das fontes oficiais, lido agora pelo seu navegador. Cada número tem fonte e data. Quando uma fonte não responde, aparece o último dado bom com a data dele, nunca um número inventado.</p>
+
+  <section id="dinheiro">
+    <h2>Dinheiro hoje</h2>
+    <div class="grade" id="mercado"><div class="card carregando">Carregando…</div></div>
+    <h3>O que mudou e o que não mudou</h3>
+    <div class="grade" id="parados"></div>
+    <h3>O que subiu de preço</h3>
+    <div id="precos"></div>
+  </section>
+
+  <section id="congresso">
+    <h2>Congresso</h2>
+    <div id="camara-hoje"></div>
+    <h3>Últimas votações no Plenário da Câmara</h3>
+    <p class="nota">Só entram votações que dizem qual projeto foi votado. Votação nominal mostra placar e como cada partido orientou.</p>
+    <div id="votacoes"></div>
+    <h3>Senado</h3>
+    <div id="senado"></div>
+  </section>
+
+  <section id="leis">
+    <h2>Leis da semana</h2>
+    <p class="nota">Projetos apresentados na Câmara nos últimos 7 dias. A frase em português é leitura automática da ementa oficial, por regras fixas. Quem decide o que vale é o texto completo.</p>
+    <div class="filtros" id="filtros"></div>
+    <div id="lista-leis"></div>
+  </section>
+
+  <section id="orcamento">
+    <h2>Dinheiro fora do Orçamento</h2>
+    <div id="creditos"></div>
+  </section>
+
+  <section id="eleicao">
+    <h2>Eleição 2026</h2>
+    <div id="resultado"></div>
+  </section>
+
+  <section id="noticias">
+    <h2>Notícias oficiais do dia</h2>
+    <p class="nota">Agências públicas da Câmara e da EBC. Clique pra ler na fonte.</p>
+    <div id="lista-noticias"></div>
+  </section>
+
+  <section id="palavras">
+    <h2>Palavras difíceis</h2>
+    <div class="grade" id="glossario"></div>
+  </section>
+
+  <section id="app">
+    <h2>O app</h2>
+    <p>O Trouxa também é um app pra Android, com o feed de leis, o painel do dia e os gastos de cada deputado. Sem anúncio, sem cadastro, sem rastreador.</p>
+    <p class="nota">Download e código aberto em breve.</p>
+  </section>
+</main>
+
+<footer class="wrap rodape">
+  <p>Fontes: Banco Central (SGS), B3, IBGE (SIDRA), Câmara dos Deputados e Senado Federal (dados abertos), TSE, Agência Câmara e Agência Brasil.</p>
+  <p>Este site não usa cookie, não tem anúncio e não guarda nada sobre você. O único armazenamento é o cache dos dados públicos no seu próprio navegador.</p>
+  <p><a href="https://x.com/trouxaapp" rel="noopener">X: @trouxaapp</a></p>
+</footer>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>

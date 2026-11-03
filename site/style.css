@@ -1,0 +1,128 @@
+/* Same palette as the app (ui/theme/Color.kt). The site is dark only, like the app. */
+:root {
+  --fundo: #0A0A0A;
+  --superficie: #161616;
+  --superficie-2: #222222;
+  --borda: #2A2A2A;
+  --texto: #FFFFFF;
+  --texto-2: #E5E5E5;
+  --texto-3: #9CA3AF;
+  --texto-4: #6B7280;
+  --vermelho: #DC2626;
+  --vermelho-claro: #F87171;
+  --verde: #22C55E;
+  --azul: #60A5FA;
+  --mono: ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 96px; }
+body {
+  margin: 0;
+  background: var(--fundo);
+  color: var(--texto-2);
+  font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--azul); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+.wrap { max-width: 880px; margin: 0 auto; padding: 0 16px; }
+
+.topo {
+  position: sticky; top: 0; z-index: 5;
+  background: rgba(10, 10, 10, .92);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--borda);
+  padding: 14px 0 0;
+}
+.marca { font-weight: 900; font-size: 26px; letter-spacing: 3px; color: var(--vermelho); text-decoration: none !important; }
+.sub { margin: 0 0 8px; color: var(--texto-3); font-size: 14px; }
+nav { display: flex; gap: 18px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: none; }
+nav::-webkit-scrollbar { display: none; }
+nav a { color: var(--texto-3); font-size: 14px; white-space: nowrap; }
+nav a:hover { color: var(--texto); text-decoration: none; }
+
+.regra { color: var(--texto-3); font-size: 14px; border-left: 3px solid var(--vermelho); padding-left: 12px; margin: 24px 0 8px; }
+
+section { padding-top: 28px; }
+h2 {
+  font-family: var(--mono); font-size: 13px; font-weight: 600; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--texto-3); margin: 8px 0 12px;
+}
+h3 { font-size: 16px; color: var(--texto); margin: 24px 0 8px; }
+.nota { color: var(--texto-4); font-size: 13px; margin: 0 0 12px; }
+
+.grade { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+.card {
+  background: var(--superficie); border: 1px solid var(--borda); border-radius: 12px;
+  padding: 16px; margin-bottom: 12px; min-width: 0;
+}
+.grade .card { margin-bottom: 0; }
+.carregando { color: var(--texto-4); }
+.rotulo { font-size: 13px; color: var(--texto-3); }
+.valor { font-size: 30px; font-weight: 800; color: var(--texto); line-height: 1.2; margin: 4px 0; font-variant-numeric: tabular-nums; }
+.valor.grande { color: var(--vermelho); }
+/* Direction is an arrow, never a good/bad color: the dollar up is not "bad" for everyone */
+.mudanca { font-size: 14px; color: var(--texto-2); }
+.fonte { font-size: 12px; color: var(--texto-4); margin-top: 10px; }
+.fonte a { color: var(--azul); }
+
+.barras { display: grid; gap: 6px; margin: 8px 0; }
+.barra { display: grid; grid-template-columns: minmax(110px, 38%) 1fr 64px; align-items: center; gap: 8px; font-size: 14px; }
+.barra .nome { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.barra .trilho { height: 10px; background: var(--superficie-2); border-radius: 5px; overflow: hidden; }
+.barra .trilho, .barra .cheio { display: block; }
+.barra .cheio { height: 100%; border-radius: 5px; }
+/* Long ementas used as the headline when no plain sentence exists */
+.frase { overflow-wrap: anywhere; }
+.card .frase.longa { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+.barra .num { text-align: right; font-family: var(--mono); font-size: 13px; }
+
+.tag {
+  display: inline-block; font-size: 10px; letter-spacing: 1px; font-weight: 600;
+  padding: 3px 8px; border-radius: 4px; margin-right: 8px;
+}
+.tag.ok { color: var(--verde); background: rgba(34, 197, 94, .15); }
+.tag.nao { color: var(--vermelho-claro); background: rgba(248, 113, 113, .15); }
+.tag.neutra { color: var(--texto-3); background: var(--superficie-2); }
+.sigla { font-family: var(--mono); font-size: 12px; color: var(--texto-3); }
+.data { font-size: 12px; color: var(--texto-4); }
+.frase { color: var(--texto); font-weight: 600; margin: 4px 0; }
+.ementa { font-size: 14px; color: var(--texto-3); margin: 4px 0; }
+.placar { font-family: var(--mono); font-size: 15px; color: var(--texto); margin-top: 6px; }
+details { margin-top: 8px; font-size: 14px; }
+summary { cursor: pointer; color: var(--texto-3); }
+.orientacoes { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 6px; font-family: var(--mono); font-size: 12px; }
+.objetivo { font-size: 14px; margin: 6px 0 0; }
+.obs { font-size: 13px; color: var(--texto-3); margin: 6px 0 0; padding-left: 18px; }
+.termos { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.termos a {
+  font-size: 12px; padding: 3px 8px; border: 1px solid var(--borda); border-radius: 999px; color: var(--texto-2);
+}
+.dinheiro { font-size: 22px; font-weight: 800; color: var(--vermelho); }
+
+.filtros { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.filtros button {
+  background: var(--superficie); color: var(--texto-2); border: 1px solid var(--borda);
+  border-radius: 8px; padding: 6px 12px; font: inherit; font-size: 14px; cursor: pointer;
+}
+.filtros button[aria-pressed="true"] { border-color: var(--vermelho); color: var(--texto); }
+
+.candidato { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: baseline; margin: 10px 0; }
+.candidato .pc { font-size: 26px; font-weight: 800; color: var(--texto); font-variant-numeric: tabular-nums; }
+
+.noticia { display: block; padding: 12px 0; border-bottom: 1px solid var(--borda); color: var(--texto-2); }
+.noticia:hover { text-decoration: none; color: var(--texto); }
+.noticia .meta { font-size: 12px; color: var(--texto-4); }
+
+.termo h4 { margin: 0 0 6px; color: var(--texto); font-size: 15px; }
+.termo p { margin: 0; font-size: 14px; }
+
+.rodape { color: var(--texto-4); font-size: 13px; padding-top: 40px; padding-bottom: 48px; border-top: 1px solid var(--borda); margin-top: 48px; }
+
+@media (max-width: 520px) {
+  .valor { font-size: 26px; }
+  .barra { grid-template-columns: minmax(90px, 40%) 1fr 56px; }
+}

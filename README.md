@@ -11,12 +11,28 @@ These are not aspirations, they are enforced in code:
 - **Honest staleness.** Fetch timestamps are stored per row and shown in the UI. When a bill has no recorded movement, the card says so instead of showing a fake status. Sync failures are counted and surfaced in a sync log (visible in Settings), not swallowed behind a green check.
 - **Opinion only via human curation, with sources.** Pros/cons/context for a bill come from a curated feed maintained by humans. Curation entries without at least one source URL are rejected by the app. Nothing opinionated is auto-generated.
 - **Neutral tone.** The app presents facts and sourced analysis. No partisan framing, no editorializing in UI strings.
+- **Plain language by rules, not by guessing.** `LeiExplicada.kt` turns an official ementa into one sentence ("Libera R$ 300 milhões fora do Orçamento já aprovado para...") with fixed patterns: credit openings, amendments to a named law, decree sustations, and so on. When no pattern fits, it says nothing. The detail screen labels the result as an automatic reading and keeps the official text next to it. Hard terms (crédito extraordinário, sustar, ADCT...) link to the Senate or Congress glossary.
 
 ## Data sources
 
 - **Camara dos Deputados open data API** (`dadosabertos.camara.leg.br`): bills (PL, PEC, PLP, MPV, MP, PDL), full author lists (deputies resolved by id, never by name search), tramitacao history, deputy profiles and CEAP expenses.
 - **Banco Central do Brasil SGS API**: economic indicator series, cached with the official reference date as published by the BCB. The UI always renders the reference date next to the value.
 - **Curated JSON feed** in [`/feed`](feed/) of this repo: highlights, "did you know" items and per-bill analysis. Every item carries mandatory sources (see "Content curation" below).
+
+The daily panel on the Hoje tab (`data/painel/`) reads these directly, in parallel, and caches the last good answer per block:
+
+| Block | Source |
+|---|---|
+| Dollar, Selic, IPCA 12 months, minimum wage | BCB SGS series 1, 432, 13522, 1619 |
+| Ibovespa | B3 public quotation endpoint |
+| What got more expensive | IBGE SIDRA table 7060 (IPCA by subitem) |
+| Chamber today, recent floor votes, party orientation | Camara open data `/eventos`, `/votacoes`, `/proposicoes` |
+| Senate floor results | Senado open data `/plenario/resultado/{date}` |
+| Credits outside the budget, per year | Camara `/proposicoes?siglaTipo=MPV`, summing "abre crédito extraordinário" ementas |
+| Election | TSE official results JSON |
+| News | RSS from Agência Câmara, Agência Senado and Agência Brasil |
+
+Nothing in the panel is computed beyond sums, differences and "when did this last change". Every card shows its source and reference date.
 
 ## Architecture
 
@@ -25,7 +41,7 @@ Single-module Android app. Kotlin, Jetpack Compose (Material 3), Hilt for DI, Ro
 - **Room cache is the source of truth.** The UI only observes the database via Flows (`TrouxaDatabase`: `leis`, `indicadores`, `deputados`, `despesas_deputado`, `feed_items`, `sync_log`). Network results are written to Room first, then rendered.
 - **WorkManager sync workers** keep the cache fresh: `LawSyncWorker` (bills pipeline via `LeisRepository`), `FeedSyncWorker` (curated feed with source validation), `IndicadorSyncWorker` (BCB series), plus notification workers. Each run writes an entry to the `sync_log` table.
 - **Bills pipeline** (`LeisRepository.syncAll`): list bills presented in the last 30 days, fetch detail + all authors + tramitacoes for new ones, classify theme, compute the activity score, then re-apply human curation to new and existing rows so corrections actually propagate. Old uncurated rows are purged.
-- **No analytics, no trackers, no third-party SDKs phoning home.** Network traffic goes to the Camara API, the BCB API and this repo's raw feed files. That is it.
+- **No analytics, no trackers, no third-party SDKs phoning home.** Network traffic goes to the public sources listed above and this repo's raw feed files. That is it.
 
 ## How to build
 

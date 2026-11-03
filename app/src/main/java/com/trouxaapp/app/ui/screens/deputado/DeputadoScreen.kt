@@ -155,8 +155,9 @@ fun DeputadosScreen(
                     texto = "Selecione uma UF para ver os deputados federais que representam o seu estado."
                 )
             } else {
+                val alvo = FormatUtils.semAcento(busca.trim())
                 val filtrados = state.deputados.filter {
-                    busca.isBlank() || it.nome.contains(busca.trim(), ignoreCase = true)
+                    alvo.isEmpty() || FormatUtils.semAcento(it.nome).contains(alvo)
                 }
                 PullToRefreshBox(
                     isRefreshing = state.isLoading,
@@ -466,7 +467,8 @@ fun DeputadoProfileScreen(
                                 }
                             } else if (!state.isLoading) {
                                 Text(
-                                    "Sem movimentação registrada no período consultado.",
+                                    "A Câmara não devolveu nenhum gasto deste ano nem do anterior. " +
+                                        "Às vezes a API oficial responde vazia por algumas horas; confira na fonte abaixo.",
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = OnSurfaceVariant
                                 )

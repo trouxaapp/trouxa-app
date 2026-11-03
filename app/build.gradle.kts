@@ -16,8 +16,8 @@ android {
         applicationId = "com.trouxaapp.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 5
-        versionName = "4.1.0"
+        versionCode = 6
+        versionName = "4.2.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -133,4 +133,10 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
+}
+
+// Optional: -Pementas=<file.tsv> and -Ppainel=<dir> make the tests dump results for real samples
+tasks.withType<Test>().configureEach {
+    systemProperty("ementas", (project.findProperty("ementas") ?: "").toString())
+    systemProperty("painel", (project.findProperty("painel") ?: "").toString())
 }

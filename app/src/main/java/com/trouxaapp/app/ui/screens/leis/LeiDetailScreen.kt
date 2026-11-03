@@ -74,7 +74,9 @@ import com.trouxaapp.app.ui.theme.OnSurface
 import com.trouxaapp.app.ui.theme.OnSurfaceFaint
 import com.trouxaapp.app.ui.theme.OnSurfaceVariant
 import com.trouxaapp.app.ui.theme.Red400
+import com.trouxaapp.app.ui.theme.Red600
 import com.trouxaapp.app.util.LawClassifier
+import com.trouxaapp.app.util.LeiExplicada
 import com.trouxaapp.app.util.ShareCard
 import kotlinx.coroutines.launch
 
@@ -129,6 +131,9 @@ fun LeiDetailScreen(
     val tipoExplicacao = remember(lei.siglaTipo, lei.ementa) {
         LawClassifier.classify(lei.siglaTipo, lei.ementa).tipoExplicacao
     }
+    val explicacao = remember(lei.siglaTipo, lei.ementa) {
+        LeiExplicada.explicar(lei.siglaTipo, lei.ementa)
+    }
 
     val identificacao = "${lei.siglaTipo} ${lei.numero}/${lei.ano}"
     val fichaUrl = "https://www.camara.leg.br/proposicoesWeb/fichadetramitacao?idProposicao=${lei.plId}"
@@ -165,10 +170,16 @@ fun LeiDetailScreen(
                             ShareCard.compartilhar(
                                 context,
                                 ShareCard.Conteudo(
-                                    rotulo = lei.tema.ifBlank { "Projeto na Câmara" },
-                                    numero = identificacao,
-                                    titulo = titulo,
-                                    texto = textoDoCard(autores, situacao),
+                                    // A money figure says more than the bill number,
+                                    // which then moves to the label
+                                    rotulo = if (explicacao.valor.isNotBlank()) "$identificacao · ${lei.tema.ifBlank { "Câmara" }}"
+                                    else lei.tema.ifBlank { "Projeto na Câmara" },
+                                    numero = explicacao.valor.ifBlank { identificacao },
+                                    titulo = if (explicacao.valor.isNotBlank()) explicacao.emUmaFrase else titulo,
+                                    texto = listOf(
+                                        explicacao.emUmaFrase.takeIf { explicacao.valor.isBlank() }.orEmpty(),
+                                        textoDoCard(autores, situacao)
+                                    ).filter { it.isNotBlank() }.joinToString("\n"),
                                     fonte = "Câmara dos Deputados, dados abertos",
                                     fonteUrl = fichaUrl,
                                     dataReferencia = formatIsoDate(
@@ -210,6 +221,70 @@ fun LeiDetailScreen(
                     ) {
                         if (lei.tema.isNotBlank()) TemaChip(lei.tema)
                         TemperaturaBadge(lei.temperatura)
+                    }
+                }
+            }
+
+            // Plain-language reading of the ementa. Rule-based, never a judgment.
+            if (!explicacao.vazia) {
+                Column {
+                    SectionLabel("Em português")
+                    if (explicacao.valor.isNotBlank()) {
+                        Text(
+                            explicacao.valor.replace("R$ ", "R$ "),
+                            style = MaterialTheme.typography.headlineLarge,
+                            fontWeight = FontWeight.Black,
+                            color = Red600,
+                            modifier = Modifier.padding(bottom = 4.dp)
+                        )
+                    }
+                    if (explicacao.emUmaFrase.isNotBlank()) {
+                        Text(explicacao.emUmaFrase, style = MaterialTheme.typography.bodyLarge, color = OnBackground)
+                    }
+                    if (explicacao.objetivo.isNotBlank()) {
+                        Text(
+                            "Objetivo escrito no projeto: ${explicacao.objetivo}.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = OnSurface,
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
+                    }
+                    if (explicacao.observacoes.isNotEmpty()) {
+                        Spacer(Modifier.height(8.dp))
+                        BulletList(explicacao.observacoes, bulletColor = OnSurfaceVariant)
+                    }
+                    Caption(
+                        "Leitura automática da ementa oficial. Quem decide o que vale é o texto completo.",
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                }
+            }
+
+            if (explicacao.termos.isNotEmpty()) {
+                Column {
+                    SectionLabel("Palavras difíceis")
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        explicacao.termos.forEach { termo ->
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .border(1.dp, CardBorder, RoundedCornerShape(12.dp))
+                                    .padding(12.dp)
+                            ) {
+                                Text(termo.termo, style = MaterialTheme.typography.titleSmall, color = OnBackground)
+                                Text(
+                                    termo.explicacao,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = OnSurfaceVariant,
+                                    modifier = Modifier.padding(top = 4.dp)
+                                )
+                                FonteLinha(
+                                    fonte = termo.fonteNome,
+                                    url = termo.fonteUrl,
+                                    modifier = Modifier.padding(top = 6.dp)
+                                )
+                            }
+                        }
                     }
                 }
             }

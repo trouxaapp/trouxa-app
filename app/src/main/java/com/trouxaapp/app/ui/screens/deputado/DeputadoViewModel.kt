@@ -9,6 +9,8 @@ import com.trouxaapp.app.data.local.DespesaEntity
 import com.trouxaapp.app.data.remote.CamaraApiService
 import com.trouxaapp.app.util.UserPrefs
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -56,6 +58,17 @@ class DeputadoViewModel @Inject constructor(
     companion object {
         private const val CACHE_TTL_MS = 24 * 60 * 60 * 1000L
     }
+
+    // The Camara API throws an occasional 504 or stalls on a request that
+    // answers in 0.2 s a moment later; one retry hides most of those
+    private suspend fun <T> comRetentativa(chamada: suspend () -> T): T =
+        try {
+            chamada()
+        } catch (e: Exception) {
+            if (e is CancellationException || (e is HttpException && e.code() < 500)) throw e
+            delay(1500)
+            chamada()
+        }
 
     private val _listState = MutableStateFlow(DeputadosListState())
     val listState: StateFlow<DeputadosListState> = _listState.asStateFlow()
@@ -106,7 +119,7 @@ class DeputadoViewModel @Inject constructor(
 
             try {
                 val now = System.currentTimeMillis()
-                val entities = camaraApi.getDeputadosByUf(uf).dados.orEmpty()
+                val entities = comRetentativa { camaraApi.getDeputadosByUf(uf) }.dados.orEmpty()
                     .filter { it.id > 0 }
                     .map {
                         DeputadoEntity(
@@ -154,7 +167,7 @@ class DeputadoViewModel @Inject constructor(
             // fails the fields stay blank and the UI says there is no data.
             var detailError: Exception? = null
             try {
-                val status = camaraApi.getDeputado(deputadoId).dados?.ultimoStatus
+                val status = comRetentativa { camaraApi.getDeputado(deputadoId) }.dados?.ultimoStatus
                 val header = cachedDep ?: DeputadoEntity(
                     id = deputadoId,
                     nome = status?.nome ?: "",
@@ -186,10 +199,9 @@ class DeputadoViewModel @Inject constructor(
                 } else {
                     val anoAtual = Calendar.getInstance().get(Calendar.YEAR)
                     val now = System.currentTimeMillis()
-                    val fetched = camaraApi.getDespesas(
-                        id = deputadoId,
-                        ano = listOf(anoAtual - 1, anoAtual)
-                    ).dados.orEmpty().map { d ->
+                    val fetched = comRetentativa {
+                        camaraApi.getDespesas(id = deputadoId, ano = listOf(anoAtual - 1, anoAtual))
+                    }.dados.orEmpty().map { d ->
                         DespesaEntity(
                             deputadoId = deputadoId,
                             ano = d.ano,
@@ -200,10 +212,14 @@ class DeputadoViewModel @Inject constructor(
                             atualizadoEm = now
                         )
                     }
-                    despesaDao.deleteByDeputado(deputadoId)
-                    despesaDao.insertAll(fetched)
+                    // The API sometimes answers 200 with an empty list for every
+                    // deputy (seen 03/11/2026); never let that wipe good data
+                    if (fetched.isNotEmpty()) {
+                        despesaDao.deleteByDeputado(deputadoId)
+                        despesaDao.insertAll(fetched)
+                    }
                     despesas = despesaDao.getByDeputado(deputadoId)
-                    updateTs = now
+                    updateTs = if (fetched.isNotEmpty()) now else cachedTs
                 }
 
                 publishDespesas(despesas, updateTs, error = null)
