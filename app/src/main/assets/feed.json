@@ -1,45 +1,60 @@
 {
-  "versao": 4,
-  "atualizado": "2026-06-29",
+  "versao": 5,
+  "atualizado": "2026-11-03",
   "itens": [
     {
       "id": 1,
       "tipo": "destaque",
       "titulo": "A cesta básica do mês",
-      "texto": "Em 2010, R$ 265 fechavam a cesta básica do mês em São Paulo. Em abril de 2026, a mesma cesta custa R$ 906. São R$ 7.692 a mais por ano saindo do seu bolso. Subiu com Lula, Dilma, Temer, Bolsonaro e Lula.",
-      "fonte": "DIEESE, cesta básica de São Paulo, abr/2026",
-      "fonte_url": "https://www.dieese.org.br/analisecestabasica/2026/202604cestabasica.pdf",
-      "data_referencia": "2026-04-30",
+      "numero": "R$ 265 → R$ 923",
+      "texto": "Em dezembro de 2010, R$ 265,15 fechavam a cesta básica do mês em São Paulo. Em setembro de 2026, a mesma cesta custou R$ 922,51, a mais cara entre as 27 capitais. São R$ 657 a mais todo mês pela mesma comida. Subiu com Lula, Dilma, Temer, Bolsonaro e Lula.",
+      "fonte": "DIEESE, cesta básica de São Paulo, set/2026",
+      "fonte_url": "https://www.dieese.org.br/analisecestabasica/2026/202609cestabasica.pdf",
+      "data_referencia": "2026-09-30",
       "ativo": true
     },
     {
       "id": 2,
       "tipo": "destaque",
       "titulo": "O salário mínimo que cabe x o que custa viver",
-      "texto": "O salário mínimo vale R$ 1.621 desde janeiro de 2026 (Decreto 12.797/2025). O DIEESE calcula todo mês quanto ele precisaria ser pra uma família de quatro pessoas viver: em abril de 2026, deu R$ 7.612,49. É 4,7 vezes o mínimo oficial. A diferença quem cobre é você.",
-      "fonte": "DIEESE, Salário Mínimo Necessário, abr/2026",
+      "numero": "R$ 1.621 x R$ 7.750",
+      "texto": "O salário mínimo vale R$ 1.621 desde janeiro de 2026 (Decreto 12.797/2025). O DIEESE calcula todo mês quanto ele precisaria ser pra uma família de quatro pessoas viver: em setembro de 2026, deu R$ 7.750,01. É 4,78 vezes o mínimo oficial. A diferença quem cobre é você.",
+      "fonte": "DIEESE, Salário Mínimo Necessário, set/2026",
       "fonte_url": "https://www.dieese.org.br/analisecestabasica/salarioMinimo.html",
-      "data_referencia": "2026-04-30",
+      "data_referencia": "2026-09-30",
       "ativo": true
     },
     {
       "id": 3,
       "tipo": "destaque",
       "titulo": "O litro da gasolina",
-      "texto": "Em 2010, o litro da gasolina custava R$ 2,57. Em junho de 2026, o preço médio no Brasil é R$ 6,61. Encher 40 litros pulou de R$ 103 para R$ 264. A mesma viagem, quase três vezes a conta. Subiu em todos os governos.",
-      "fonte": "ANP, preço médio de revenda da gasolina comum no Brasil, jun/2026",
+      "numero": "R$ 2,57 → R$ 6,54",
+      "texto": "Em 2010, o litro da gasolina custava em média R$ 2,57 no Brasil. Em setembro de 2026, o preço médio foi R$ 6,54. Encher 40 litros pulou de R$ 103 para R$ 262. A mesma viagem, mais de duas vezes e meia a conta. Subiu em todos os governos.",
+      "fonte": "ANP, preço médio de revenda da gasolina comum no Brasil, set/2026",
       "fonte_url": "https://www.gov.br/anp/pt-br/assuntos/precos-e-defesa-da-concorrencia/precos/precos-revenda-e-de-distribuicao-combustiveis",
-      "data_referencia": "2026-06-15",
+      "data_referencia": "2026-09-30",
       "ativo": true
     },
     {
       "id": 4,
       "tipo": "destaque",
       "titulo": "O botijão de gás",
-      "texto": "Em 2010, o botijão de gás de 13kg custava R$ 38. Em maio de 2026, o preço médio no Brasil é R$ 115. Quem troca um por mês paga R$ 918 a mais por ano só pra cozinhar. Subiu em todos os governos.",
-      "fonte": "ANP, preço médio de revenda do GLP 13kg no Brasil, mai/2026",
+      "numero": "R$ 38 → R$ 114",
+      "texto": "Em 2010, o botijão de gás de 13kg custava R$ 38 no Brasil. Em setembro de 2026, o preço médio foi R$ 114,33. Quem troca um por mês paga R$ 916 a mais por ano só pra cozinhar. Subiu em todos os governos.",
+      "fonte": "ANP, preço médio de revenda do GLP 13kg no Brasil, set/2026",
       "fonte_url": "https://www.gov.br/anp/pt-br/assuntos/precos-e-defesa-da-concorrencia/precos/precos-revenda-e-de-distribuicao-combustiveis",
-      "data_referencia": "2026-05-31",
+      "data_referencia": "2026-09-30",
+      "ativo": true
+    },
+    {
+      "id": 7,
+      "tipo": "destaque",
+      "titulo": "O salário de quem vota as leis",
+      "numero": "R$ 46.366,19",
+      "texto": "É o subsídio mensal de um deputado federal, 28 vezes o salário mínimo de R$ 1.621. A cota parlamentar (CEAP) vem por fora: um deputado de São Paulo pode gastar até R$ 48.727,46 por mês com passagem, combustível, escritório e divulgação. Tudo pago com imposto.",
+      "fonte": "Câmara dos Deputados, perguntas frequentes sobre deputados",
+      "fonte_url": "https://www2.camara.leg.br/transparencia/acesso-a-informacao/copy_of_perguntas-frequentes/deputados",
+      "data_referencia": "2026-11-03",
       "ativo": true
     },
     {
@@ -56,10 +71,10 @@
       "id": 6,
       "tipo": "voce_sabia",
       "titulo": "Cada nota fiscal do mandato é pública",
-      "texto": "Além do salário, cada deputado federal tem a CEAP, uma cota mensal que banca passagem, combustível, escritório e divulgação. Cada nota fiscal é pública, item por item, no site da Câmara. A aba Deputados deste app abre esses gastos pra você conferir.",
+      "texto": "Além do salário, cada deputado federal tem a CEAP, uma cota mensal que banca passagem, combustível, escritório e divulgação. Em São Paulo, o teto é R$ 48.727,46 por mês. Cada nota fiscal é pública, item por item, no site da Câmara. A aba Deputados deste app abre esses gastos pra você conferir.",
       "fonte": "Câmara dos Deputados, Cota Parlamentar (CEAP)",
-      "fonte_url": "https://www.camara.leg.br/cota-parlamentar/",
-      "data_referencia": "2026-06-29",
+      "fonte_url": "https://www2.camara.leg.br/comunicacao/assessoria-de-imprensa/guia-para-jornalistas/cota-parlamentar",
+      "data_referencia": "2026-11-03",
       "ativo": true
     }
   ]

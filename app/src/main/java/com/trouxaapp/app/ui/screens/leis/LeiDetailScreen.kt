@@ -42,6 +42,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -74,6 +75,8 @@ import com.trouxaapp.app.ui.theme.OnSurfaceFaint
 import com.trouxaapp.app.ui.theme.OnSurfaceVariant
 import com.trouxaapp.app.ui.theme.Red400
 import com.trouxaapp.app.util.LawClassifier
+import com.trouxaapp.app.util.ShareCard
+import kotlinx.coroutines.launch
 
 /**
  * Full bill page. Everything rendered here is either raw Camara data,
@@ -101,6 +104,7 @@ fun LeiDetailScreen(
     }
 
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val gson = remember { Gson() }
 
     val motivos = remember(lei.temperaturaMotivosJson) {
@@ -144,23 +148,38 @@ fun LeiDetailScreen(
                 },
                 actions = {
                     IconButton(onClick = {
-                        val texto = buildString {
+                        val situacao = lei.ultimaSituacao
+                            .ifBlank { lei.ultimoStatusDescricao }
+                            .ifBlank { "sem situação registrada" }
+                        val legenda = buildString {
                             append(titulo)
                             append("\nSituação: ")
-                            append(lei.ultimaSituacao.ifBlank { "sem situação registrada" })
+                            append(situacao)
                             if (lei.ultimoStatusData.isNotBlank()) {
                                 append(" (${formatIsoDate(lei.ultimoStatusData)})")
                             }
                             append("\nFicha oficial: $fichaUrl")
                             append("\nvia Trouxa App")
                         }
-                        val send = Intent(Intent.ACTION_SEND).apply {
-                            type = "text/plain"
-                            putExtra(Intent.EXTRA_TEXT, texto)
+                        scope.launch {
+                            ShareCard.compartilhar(
+                                context,
+                                ShareCard.Conteudo(
+                                    rotulo = lei.tema.ifBlank { "Projeto na Câmara" },
+                                    numero = identificacao,
+                                    titulo = titulo,
+                                    texto = textoDoCard(autores, situacao),
+                                    fonte = "Câmara dos Deputados, dados abertos",
+                                    fonteUrl = fichaUrl,
+                                    dataReferencia = formatIsoDate(
+                                        lei.ultimoStatusData.ifBlank { lei.dataApresentacao }
+                                    )
+                                ),
+                                legenda = legenda
+                            )
                         }
-                        runCatching { context.startActivity(Intent.createChooser(send, null)) }
                     }) {
-                        Icon(Icons.Default.Share, contentDescription = "Compartilhar")
+                        Icon(Icons.Default.Share, contentDescription = "Compartilhar como imagem")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -464,6 +483,23 @@ fun LeiDetailScreen(
             }
         }
     }
+}
+
+// Who signed and where it stands, in plain words. Names come straight from
+// the Camara author list; nothing is inferred about intent.
+private fun textoDoCard(autores: List<LeisRepository.AutorInfo>, situacao: String): String {
+    val assinatura = autores.firstOrNull()?.let { a ->
+        val sigla = listOf(a.partido, a.uf).filter { it.isNotBlank() }.joinToString("-")
+        val nome = if (sigla.isNotBlank()) "${a.nome} ($sigla)" else a.nome
+        when (val outros = autores.size - 1) {
+            0 -> "Quem assina: $nome."
+            1 -> "Quem assina: $nome e mais 1."
+            else -> "Quem assina: $nome e mais $outros."
+        }
+    }.orEmpty()
+    return listOf(assinatura, "Onde está: ${situacao.trimEnd('.')}.")
+        .filter { it.isNotBlank() }
+        .joinToString("\n")
 }
 
 @Composable

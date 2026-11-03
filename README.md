@@ -60,7 +60,7 @@ Then:
 
 Curated content lives in this repo under `feed/` and is fetched by the app at sync time. Updating these files updates the app without shipping a new APK.
 
-### `feed/feed.json` (schema v3)
+### `feed/feed.json`
 
 Highlights and "did you know" items for the home feed:
 
@@ -73,6 +73,7 @@ Highlights and "did you know" items for the home feed:
       "id": 1,
       "tipo": "destaque",
       "titulo": "...",
+      "numero": "R$ 265 → R$ 923",
       "texto": "...",
       "fonte": "Name of the source",
       "fonte_url": "https://...",
@@ -83,7 +84,7 @@ Highlights and "did you know" items for the home feed:
 }
 ```
 
-`fonte`, `fonte_url` and `data_referencia` are mandatory. The app drops any item missing them during sync and logs how many were discarded. An emptied remote feed empties the app, so retracting bad content actually works.
+`numero` is optional: a short headline figure shown big on the card and on the shareable image. `fonte`, `fonte_url` and `data_referencia` are mandatory. The app drops any item missing them during sync and logs how many were discarded. An emptied remote feed empties the app, so retracting bad content actually works.
 
 ### `feed/curadoria.json`
 
@@ -108,6 +109,10 @@ Per-bill human analysis, keyed by the bill id from the Camara API:
 ```
 
 At least one entry in `fontes` with a non-empty `url` is mandatory. Entries without sources are rejected by the app. Curation is re-applied on every sync, so fixing a wrong entry in the JSON fixes it on every device.
+
+## Shareable cards
+
+Every highlight and every bill can be shared as a 1080x1920 image (`util/ShareCard.kt`), drawn on device. A card always carries the figure, the source, the source domain and the reference date together, so it still holds up when it is forwarded without context. The same file is the only place card layout lives.
 
 ## Contributing
 

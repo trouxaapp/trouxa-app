@@ -37,7 +37,14 @@ class FeedSyncWorker @AssistedInject constructor(
         const val FEED_URL =
             "https://raw.githubusercontent.com/trouxaapp/trouxa-app/main/feed/feed.json"
         const val ASSET_FEED = "feed.json"
+        private const val PREFS = "feed_sync"
+        private const val KEY_APLICADO = "atualizado_aplicado"
     }
+
+    // "atualizado" (ISO date) of the last feed written to the table, remote or
+    // bundled. Lets a newer APK replace stale bundled content even while the
+    // remote is unreachable, without an older bundle overriding a newer remote.
+    private val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
     override suspend fun doWork(): Result {
         val agora = System.currentTimeMillis()
@@ -55,6 +62,7 @@ class FeedSyncWorker @AssistedInject constructor(
             val (entities, descartados) = parseFeed(body, agora)
             // Replace unconditionally: an emptied remote feed must empty the app.
             feedDao.replaceAll(entities)
+            marcarAplicado(body)
             syncLogDao.insert(
                 SyncLogEntity(
                     worker = "feed",
@@ -69,13 +77,18 @@ class FeedSyncWorker @AssistedInject constructor(
             // Remote unreachable (e.g. repo privado -> 404). Seed from the feed
             // bundled in the APK so the curated content still shows, but only
             // when we have nothing yet: a reachable remote must always override.
-            return seedFromAssetIfEmpty(agora)
+            return seedFromAsset(agora)
         }
     }
 
-    private suspend fun seedFromAssetIfEmpty(agora: Long): Result {
+    private suspend fun seedFromAsset(agora: Long): Result {
         return try {
-            if (feedDao.getAtivos().isNotEmpty()) {
+            val body = applicationContext.assets.open(ASSET_FEED)
+                .bufferedReader(Charsets.UTF_8).use { it.readText() }
+            val bundled = atualizadoDe(body)
+            val aplicado = prefs.getString(KEY_APLICADO, "").orEmpty()
+            val bundledMaisNovo = bundled.isNotEmpty() && bundled > aplicado
+            if (feedDao.getAtivos().isNotEmpty() && !bundledMaisNovo) {
                 // Content is intact, so this run is healthy. Retrying here is
                 // pointless (a private repo 404s forever) and every retry used
                 // to write another failure row, flooding the health panel.
@@ -89,10 +102,9 @@ class FeedSyncWorker @AssistedInject constructor(
                 )
                 return Result.success()
             }
-            val body = applicationContext.assets.open(ASSET_FEED)
-                .bufferedReader(Charsets.UTF_8).use { it.readText() }
             val (entities, _) = parseFeed(body, agora)
             feedDao.replaceAll(entities)
+            marcarAplicado(body)
             syncLogDao.insert(
                 SyncLogEntity(
                     worker = "feed",
@@ -114,6 +126,14 @@ class FeedSyncWorker @AssistedInject constructor(
             )
             Result.retry()
         }
+    }
+
+    private fun atualizadoDe(body: String): String = runCatching {
+        Gson().fromJson(body, FeedRemoteData::class.java)?.atualizado?.trim().orEmpty()
+    }.getOrDefault("")
+
+    private fun marcarAplicado(body: String) {
+        prefs.edit().putString(KEY_APLICADO, atualizadoDe(body)).apply()
     }
 
     /** Parses a feed body and drops every item missing fonte + fonte_url + data_referencia + texto. */
@@ -139,6 +159,7 @@ class FeedSyncWorker @AssistedInject constructor(
                 fonte = fonte,
                 fonteUrl = fonteUrl,
                 dataReferencia = dataRef,
+                numero = item.numero?.trim().orEmpty(),
                 ativo = item.ativo ?: true,
                 atualizadoEm = agora
             )
@@ -147,7 +168,7 @@ class FeedSyncWorker @AssistedInject constructor(
     }
 }
 
-// Mirrors feed/feed.json schema v3 in the app repo
+// Mirrors feed/feed.json schema v3 in the app repo ("numero" is optional)
 data class FeedRemoteData(
     val versao: Int = 0,
     val atualizado: String? = null,
@@ -162,5 +183,6 @@ data class FeedRemoteItem(
     val fonte: String? = null,
     @SerializedName("fonte_url") val fonteUrl: String? = null,
     @SerializedName("data_referencia") val dataReferencia: String? = null,
+    val numero: String? = null,    // optional, rendered big on cards
     val ativo: Boolean? = true
 )

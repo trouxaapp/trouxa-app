@@ -96,7 +96,7 @@ fun AtualizadoEm(timestamp: Long, prefixo: String, modifier: Modifier = Modifier
 fun formatRelative(timestamp: Long, agora: Long = System.currentTimeMillis()): String {
     val diff = agora - timestamp
     return when {
-        diff < TimeUnit.MINUTES.toMillis(1) -> "atualizado agora há pouco"
+        diff < TimeUnit.MINUTES.toMillis(1) -> "atualizado agora"
         diff < TimeUnit.HOURS.toMillis(1) -> "atualizado há ${TimeUnit.MILLISECONDS.toMinutes(diff)} min"
         diff < TimeUnit.HOURS.toMillis(48) -> "atualizado há ${TimeUnit.MILLISECONDS.toHours(diff)} h"
         else -> "atualizado em " + SimpleDateFormat("dd/MM/yyyy", Locale("pt", "BR")).format(Date(timestamp))

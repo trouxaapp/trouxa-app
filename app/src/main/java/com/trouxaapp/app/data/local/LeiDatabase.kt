@@ -272,6 +272,7 @@ data class FeedItemEntity(
     val fonte: String,
     val fonteUrl: String,
     val dataReferencia: String, // date the fact refers to, shown in the UI
+    val numero: String = "",    // optional headline figure, e.g. "R$ 265 → R$ 906"
     val ativo: Boolean = true,
     val atualizadoEm: Long
 )
@@ -355,7 +356,7 @@ interface SyncLogDao {
         FeedItemEntity::class,
         SyncLogEntity::class
     ],
-    version = 9,
+    version = 10,
     exportSchema = false
 )
 abstract class TrouxaDatabase : RoomDatabase() {

@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -23,8 +24,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -43,6 +46,8 @@ import com.trouxaapp.app.ui.theme.OnSurfaceFaint
 import com.trouxaapp.app.ui.theme.OnSurfaceVariant
 import com.trouxaapp.app.ui.theme.Red600
 import com.trouxaapp.app.ui.theme.Surface
+import com.trouxaapp.app.util.ShareCard
+import kotlinx.coroutines.launch
 import java.util.Locale
 
 /**
@@ -93,8 +98,25 @@ fun HojeScreen(
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
+                // The sourced punches come first: they are what people share.
+                item(key = "label_destaques") {
+                    SectionLabel("Destaques da curadoria")
+                }
+                if (state.destaques.isEmpty()) {
+                    item(key = "destaques_vazio") {
+                        Text(
+                            "Sem destaques curados no momento. Eles chegam por atualização remota, sempre com fonte.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = OnSurfaceVariant
+                        )
+                    }
+                } else {
+                    items(state.destaques, key = { it.id }) { destaque ->
+                        DestaqueCard(destaque)
+                    }
+                }
                 item(key = "label_indicadores") {
-                    SectionLabel("Indicadores oficiais")
+                    SectionLabel("Indicadores oficiais", Modifier.padding(top = 12.dp))
                 }
                 if (state.indicadores.isEmpty()) {
                     item(key = "indicadores_vazio") {
@@ -119,22 +141,6 @@ fun HojeScreen(
                     }
                 }
 
-                item(key = "label_destaques") {
-                    SectionLabel("Destaques da curadoria", Modifier.padding(top = 12.dp))
-                }
-                if (state.destaques.isEmpty()) {
-                    item(key = "destaques_vazio") {
-                        Text(
-                            "Sem destaques curados no momento. Eles chegam por atualização remota, sempre com fonte.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = OnSurfaceVariant
-                        )
-                    }
-                } else {
-                    items(state.destaques, key = { it.id }) { destaque ->
-                        DestaqueCard(destaque)
-                    }
-                }
             }
         }
     }
@@ -216,6 +222,8 @@ private fun CamaraHojeCard(quantidade: Int) {
 
 @Composable
 private fun DestaqueCard(item: FeedItemEntity) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
@@ -223,8 +231,44 @@ private fun DestaqueCard(item: FeedItemEntity) {
         border = BorderStroke(1.dp, CardBorder)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            if (item.titulo.isNotBlank()) {
-                Text(item.titulo, style = MaterialTheme.typography.titleMedium)
+            Row(verticalAlignment = Alignment.Top) {
+                Column(modifier = Modifier.weight(1f)) {
+                    if (item.titulo.isNotBlank()) {
+                        Text(item.titulo, style = MaterialTheme.typography.titleMedium)
+                    }
+                    if (item.numero.isNotBlank()) {
+                        Text(
+                            semQuebraNoValor(item.numero),
+                            style = MaterialTheme.typography.headlineLarge,
+                            fontWeight = FontWeight.Black,
+                            color = Red600,
+                            modifier = Modifier.padding(top = 6.dp)
+                        )
+                    }
+                }
+                IconButton(onClick = {
+                    scope.launch {
+                        ShareCard.compartilhar(
+                            context,
+                            ShareCard.Conteudo(
+                                rotulo = item.titulo,
+                                numero = item.numero,
+                                titulo = "",
+                                texto = item.texto,
+                                fonte = item.fonte,
+                                fonteUrl = item.fonteUrl,
+                                dataReferencia = formatIsoDate(item.dataReferencia)
+                            ),
+                            legenda = "${item.titulo}\nFonte: ${item.fonte}\n${item.fonteUrl}"
+                        )
+                    }
+                }) {
+                    Icon(
+                        Icons.Default.Share,
+                        contentDescription = "Compartilhar como imagem",
+                        tint = OnSurfaceVariant
+                    )
+                }
             }
             Text(
                 item.texto,
@@ -241,14 +285,17 @@ private fun DestaqueCard(item: FeedItemEntity) {
     }
 }
 
+// "R$ 1.621 x R$ 7.750" must never wrap between the currency and the value
+private fun semQuebraNoValor(texto: String) = texto.replace("R$ ", "R$\u00A0")
+
 // Each BCB series has its own unit; anything unmapped renders as a bare number
 private fun formatValorIndicador(serie: Int, valor: Double): String {
     val ptBr = Locale("pt", "BR")
     return when (serie) {
-        BcbApiService.DOLAR -> "R$ %.2f".format(ptBr, valor)
+        BcbApiService.DOLAR -> "R$ %,.2f".format(ptBr, valor)
         BcbApiService.SELIC -> "%.2f%% ao ano".format(ptBr, valor)
         BcbApiService.IPCA_12M -> "%.2f%% em 12 meses".format(ptBr, valor)
-        BcbApiService.SALARIO_MINIMO -> "R$ %.2f".format(ptBr, valor)
+        BcbApiService.SALARIO_MINIMO -> "R$ %,.2f".format(ptBr, valor)
         else -> "%.2f".format(ptBr, valor)
     }
 }

@@ -346,10 +346,13 @@ private fun LeiCard(lei: LeiEntity, onClick: () -> Unit) {
 
         Spacer(Modifier.height(8.dp))
 
-        val situacao = if (lei.ultimaSituacao.isBlank()) {
-            "Sem movimentação registrada ainda"
-        } else {
-            "Situação: ${lei.ultimaSituacao}"
+        // New bills often have no "situacao" yet while the Camara already
+        // logged a movement; saying "no movement" there contradicted the
+        // detail screen, so the last movement is shown instead.
+        val situacao = when {
+            lei.ultimaSituacao.isNotBlank() -> "Situação: ${lei.ultimaSituacao}"
+            lei.ultimoStatusDescricao.isNotBlank() -> "Última movimentação: ${lei.ultimoStatusDescricao}"
+            else -> "Sem movimentação registrada ainda"
         }
         val dataStatus = formatIsoDate(lei.ultimoStatusData)
         Text(

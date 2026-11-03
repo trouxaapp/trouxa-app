@@ -53,7 +53,11 @@ class HojeViewModel @Inject constructor(
     ) { inds, feed, novos, refr ->
         HojeUiState(
             indicadores = inds.map { it.toUi() },
-            destaques = feed.sortedByDescending { it.atualizadoEm },
+            // Every row of a sync shares one timestamp, so order by the feed's
+            // own ids instead: highlights first, then "did you know" items.
+            destaques = feed.sortedWith(
+                compareBy<FeedItemEntity>({ it.tipo != "destaque" }, { it.id.substringAfterLast('_').toIntOrNull() ?: 0 })
+            ),
             projetosNovosHoje = novos,
             isRefreshing = refr
         )
