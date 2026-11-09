@@ -1,4 +1,4 @@
-# Trouxa App
+﻿# Trouxa App
 
 Android app that tracks bills moving through the Brazilian Congress and key economic indicators, with a hard rule: the app never invents data.
 
@@ -11,7 +11,7 @@ These are not aspirations, they are enforced in code:
 - **Honest staleness.** Fetch timestamps are stored per row and shown in the UI. When a bill has no recorded movement, the card says so instead of showing a fake status. Sync failures are counted and surfaced in a sync log (visible in Settings), not swallowed behind a green check.
 - **Opinion only via human curation, with sources.** Pros/cons/context for a bill come from a curated feed maintained by humans. Curation entries without at least one source URL are rejected by the app. Nothing opinionated is auto-generated.
 - **Neutral tone.** The app presents facts and sourced analysis. No partisan framing, no editorializing in UI strings.
-- **Plain language by rules, not by guessing.** `LeiExplicada.kt` turns an official ementa into one sentence ("Libera R$ 300 milhões fora do Orçamento já aprovado para...") with fixed patterns: credit openings, amendments to a named law, decree sustations, and so on. When no pattern fits, it says nothing. The detail screen labels the result as an automatic reading and keeps the official text next to it. Hard terms (crédito extraordinário, sustar, ADCT...) link to the Senate or Congress glossary.
+- **Plain language by rules, not by guessing.** `LeiExplicada.kt` turns an official ementa into one sentence ("Libera R$ 300 milhÃµes fora do OrÃ§amento jÃ¡ aprovado para...") with fixed patterns: credit openings, amendments to a named law, decree sustations, and so on. When no pattern fits, it says nothing. The detail screen labels the result as an automatic reading and keeps the official text next to it. Hard terms (crÃ©dito extraordinÃ¡rio, sustar, ADCT...) link to the Senate or Congress glossary.
 
 ## Data sources
 
@@ -28,9 +28,9 @@ The daily panel on the Hoje tab (`data/painel/`) reads these directly, in parall
 | What got more expensive | IBGE SIDRA table 7060 (IPCA by subitem) |
 | Chamber today, recent floor votes, party orientation | Camara open data `/eventos`, `/votacoes`, `/proposicoes` |
 | Senate floor results | Senado open data `/plenario/resultado/{date}` |
-| Credits outside the budget, per year | Camara `/proposicoes?siglaTipo=MPV`, summing "abre crédito extraordinário" ementas |
+| Credits outside the budget, per year | Camara `/proposicoes?siglaTipo=MPV`, summing "abre crÃ©dito extraordinÃ¡rio" ementas |
 | Election | TSE official results JSON |
-| News | RSS from Agência Câmara, Agência Senado and Agência Brasil |
+| News | RSS from AgÃªncia CÃ¢mara, AgÃªncia Senado and AgÃªncia Brasil |
 
 Nothing in the panel is computed beyond sums, differences and "when did this last change". Every card shows its source and reference date.
 
@@ -89,7 +89,7 @@ Highlights and "did you know" items for the home feed:
       "id": 1,
       "tipo": "destaque",
       "titulo": "...",
-      "numero": "R$ 265 → R$ 923",
+      "numero": "R$ 265 â†’ R$ 923",
       "texto": "...",
       "fonte": "Name of the source",
       "fonte_url": "https://...",
@@ -126,6 +126,10 @@ Per-bill human analysis, keyed by the bill id from the Camara API:
 
 At least one entry in `fontes` with a non-empty `url` is mandatory. Entries without sources are rejected by the app. Curation is re-applied on every sync, so fixing a wrong entry in the JSON fixes it on every device.
 
+## Site
+
+Static site in `docs/`, published by GitHub Pages. It reads the official sources straight from the browser, no backend.
+
 ## Shareable cards
 
 Every highlight and every bill can be shared as a 1080x1920 image (`util/ShareCard.kt`), drawn on device. A card always carries the figure, the source, the source domain and the reference date together, so it still holds up when it is forwarded without context. The same file is the only place card layout lives.
@@ -137,3 +141,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). Short version: factual error reports are
 ## License
 
 MIT. See [LICENSE](LICENSE).
+
