@@ -73,6 +73,29 @@ export function cabecalhoOAuth({ method, url, params = {}, creds }) {
   );
 }
 
+const espera = (ms) => new Promise((r) => setTimeout(r, ms));
+
+/**
+ * Repete em 429 (fila) e 5xx (erro do lado deles). Publicar post não é
+ * idempotente, então um 5xx pode duplicar; 429 não cria nada e é o caso comum
+ * de cron.
+ */
+async function comRetentativa(acao, { tentativas = 3, esperaMs = 20000 } = {}) {
+  let ultimo;
+  for (let i = 1; i <= tentativas; i++) {
+    try {
+      return await acao();
+    } catch (e) {
+      ultimo = e;
+      const status = Number((String(e.message).match(/\((\d{3})\)/) || [])[1] || 0);
+      if ((status !== 429 && status < 500) || i === tentativas) break;
+      console.log(`X respondeu ${status}; nova tentativa em ${(esperaMs * i) / 1000}s`);
+      await espera(esperaMs * i);
+    }
+  }
+  throw ultimo;
+}
+
 /** Sobe um PNG e devolve o media_id_string. */
 export async function subirMidia(png, { creds = credenciais() } = {}) {
   const url = "https://upload.twitter.com/1.1/media/upload.json";
@@ -84,20 +107,22 @@ export async function subirMidia(png, { creds = credenciais() } = {}) {
     Buffer.from(`\r\n--${limite}--\r\n`),
   ]);
 
-  const resp = await fetch(`${url}?media_category=tweet_image`, {
-    method: "POST",
-    headers: {
-      authorization: cabecalhoOAuth({ method: "POST", url, params, creds }),
-      "content-type": `multipart/form-data; boundary=${limite}`,
-      "content-length": String(body.length),
-    },
-    body,
+  return comRetentativa(async () => {
+    const resp = await fetch(`${url}?media_category=tweet_image`, {
+      method: "POST",
+      headers: {
+        authorization: cabecalhoOAuth({ method: "POST", url, params, creds }),
+        "content-type": `multipart/form-data; boundary=${limite}`,
+        "content-length": String(body.length),
+      },
+      body,
+    });
+    const json = await resp.json().catch(() => ({}));
+    if (!resp.ok) throw new Error(`upload de mídia falhou (${resp.status}): ${JSON.stringify(json)}`);
+    const id = json.media_id_string || json.media_id;
+    if (!id) throw new Error(`upload sem media_id: ${JSON.stringify(json)}`);
+    return String(id);
   });
-  const json = await resp.json().catch(() => ({}));
-  if (!resp.ok) throw new Error(`upload de mídia falhou (${resp.status}): ${JSON.stringify(json)}`);
-  const id = json.media_id_string || json.media_id;
-  if (!id) throw new Error(`upload sem media_id: ${JSON.stringify(json)}`);
-  return String(id);
 }
 
 /** Publica o tweet. Texto já vem apertado em 280. */
@@ -106,17 +131,19 @@ export async function tuitar(texto, mediaIds = [], { creds = credenciais() } = {
   const payload = { text: texto };
   if (mediaIds.length) payload.media = { media_ids: mediaIds.map(String) };
 
-  const resp = await fetch(url, {
-    method: "POST",
-    headers: {
-      authorization: cabecalhoOAuth({ method: "POST", url, creds }),
-      "content-type": "application/json",
-    },
-    body: JSON.stringify(payload),
+  return comRetentativa(async () => {
+    const resp = await fetch(url, {
+      method: "POST",
+      headers: {
+        authorization: cabecalhoOAuth({ method: "POST", url, creds }),
+        "content-type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+    const json = await resp.json().catch(() => ({}));
+    if (!resp.ok) throw new Error(`tweet falhou (${resp.status}): ${JSON.stringify(json)}`);
+    return json?.data ?? json;
   });
-  const json = await resp.json().catch(() => ({}));
-  if (!resp.ok) throw new Error(`tweet falhou (${resp.status}): ${JSON.stringify(json)}`);
-  return json?.data ?? json;
 }
 
 export { credenciais, baseString };

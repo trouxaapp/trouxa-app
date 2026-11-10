@@ -42,6 +42,17 @@ Flags: `--slot=0|1|2`, `--provider=pollinations|venice|nenhum`,
 `.github/workflows/publicar-x.yml` roda 3x por dia (cron em UTC) e chama o
 script. Ele precisa destes secrets no repositório:
 
+### Disparar na mão
+
+```bash
+gh workflow run publicar-x.yml --repo trouxaapp/trouxa-app            # posta o do horário
+gh workflow run publicar-x.yml --repo trouxaapp/trouxa-app -f dry_run=true
+gh workflow run publicar-x.yml --repo trouxaapp/trouxa-app -f post_id=voto-aberto
+```
+
+O rodízio é calculado de data + horário, então não existe estado para
+sincronizar e um re-run no mesmo horário repete o mesmo post.
+
 | Secret | Onde pegar |
 |---|---|
 | `X_API_KEY` | portal de desenvolvedor do X, app com permissão de escrita |

@@ -100,8 +100,9 @@ async function main() {
   } catch (e) {
     // 402 aqui é saldo zerado, não permissão: a API do X é pré-paga e o texto
     // só sai depois de comprar crédito em Billing > Credits no console.
+    // A linha ::warning:: vira anotação no Actions, bem visível.
     if (/\(402\)|credits depleted/i.test(e.message)) {
-      console.error("faltam créditos no X (console > Billing > Credits). O cartaz e o texto estão prontos; só o post não saiu.");
+      console.error("::warning::faltam créditos no X (console > Billing > Credits): texto e cartaz prontos, post não saiu");
     }
     throw e;
   }
