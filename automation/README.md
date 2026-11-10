@@ -48,11 +48,15 @@ script. Ele precisa destes secrets no repositório:
 | `X_API_SECRET` | idem |
 | `X_ACCESS_TOKEN` | idem, token da conta @trouxaapp |
 | `X_ACCESS_SECRET` | idem |
-| `VENICE_API_KEY` | opcional, só se `IMAGE_PROVIDER=venice` |
-| `POLLINATIONS_TOKEN` | opcional; tira a fila anônima (que responde 402 em pico) |
+| `VENICE_API_KEY` | imagem por IA sem censura (provedor padrão) |
+| `POLLINATIONS_TOKEN` | opcional; sem chave também funciona, mas leva 402 em pico |
 
-O app do X precisa de **write** e de **OAuth 1.0a** ligados; sem isso o upload
-de imagem responde 401.
+Variáveis opcionais (Settings > Variables): `VENICE_IMAGE_MODEL` (padrão
+`venice-sd35`), `SITE_URL` (link que entra no post).
+
+O app do X precisa de **write** e de **OAuth 1.0a** ligados, e a conta precisa
+de **créditos**: a API do X é pré-paga, e com saldo zerado o post volta
+`402 credits depleted` mesmo com tudo certo.
 
 Se o provedor de imagem cair, o cartaz sai mesmo assim, com as ondas
 procedurais (marrom). Nunca sai vazio, nunca trava a publicação.

@@ -38,6 +38,9 @@ async function pollinations(prompt, { width, height }) {
 
 async function venice(prompt, { width, height, apiKey }) {
   if (!apiKey) throw new Error("VENICE_API_KEY não definida");
+  // A Venice aceita no máximo 1280 por lado e gosta de múltiplos de 32; o
+  // cartaz depois corta/estica com o sharp, então o tamanho exato não importa.
+  const ajustar = (v) => Math.min(1280, Math.max(256, Math.round(Number(v) / 32) * 32));
   const resp = await fetch("https://api.venice.ai/api/v1/image/generate", {
     method: "POST",
     headers: {
@@ -45,16 +48,16 @@ async function venice(prompt, { width, height, apiKey }) {
       authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: "flux-dev",
+      model: process.env.VENICE_IMAGE_MODEL || "venice-sd35",
       prompt,
-      width,
-      height,
+      width: ajustar(width),
+      height: ajustar(height),
       format: "png",
       hide_watermark: true,
       safe_mode: false, // sem censura de prompt
     }),
   });
-  if (!resp.ok) throw new Error(`venice HTTP ${resp.status}: ${await resp.text()}`);
+  if (!resp.ok) throw new Error(`venice HTTP ${resp.status}: ${(await resp.text()).slice(0, 120)}`);
   const json = await resp.json();
   const b64 = json?.images?.[0];
   if (!b64) throw new Error("venice respondeu sem imagem");

@@ -21,7 +21,7 @@ on:
       provider:
         description: "pollinations | venice | nenhum"
         required: false
-        default: "pollinations"
+        default: "venice"
 
 concurrency:
   group: publicar-x
@@ -37,8 +37,9 @@ jobs:
       X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
       X_ACCESS_SECRET: ${{ secrets.X_ACCESS_SECRET }}
       VENICE_API_KEY: ${{ secrets.VENICE_API_KEY }}
+      VENICE_IMAGE_MODEL: ${{ vars.VENICE_IMAGE_MODEL || 'venice-sd35' }}
       POLLINATIONS_TOKEN: ${{ secrets.POLLINATIONS_TOKEN }}
-      IMAGE_PROVIDER: ${{ github.event.inputs.provider || 'pollinations' }}
+      IMAGE_PROVIDER: ${{ github.event.inputs.provider || 'venice' }}
     steps:
       - uses: actions/checkout@v4
 
