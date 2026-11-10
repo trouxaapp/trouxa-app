@@ -19,6 +19,7 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.trouxaapp.app.MainActivity
 import com.trouxaapp.app.R
+import com.trouxaapp.app.data.local.FeedDao
 import com.trouxaapp.app.data.local.LeiDao
 import com.trouxaapp.app.data.remote.BcbApiService
 import com.trouxaapp.app.data.repository.IndicadorRepository
@@ -47,6 +48,7 @@ class DailyNotificationWorker @AssistedInject constructor(
     @Assisted private val context: Context,
     @Assisted params: WorkerParameters,
     private val leiDao: LeiDao,
+    private val feedDao: FeedDao,
     private val indicadorRepo: IndicadorRepository
 ) : CoroutineWorker(context, params) {
 
@@ -88,6 +90,26 @@ class DailyNotificationWorker @AssistedInject constructor(
 
         val dayStamp = cal.get(Calendar.YEAR) * 1000 + cal.get(Calendar.DAY_OF_YEAR)
         if (prefs.lastDigestDay == dayStamp) return Result.success()
+
+        // 1) A verdade curada do dia, em rodizio deterministico. É o que
+        // faz abrir: número + uma frase que não sai da cabeça.
+        val destaques = feedDao.getAtivos().filter { it.tipo == "destaque" && it.numero.isNotBlank() }
+        if (destaques.isNotEmpty()) {
+            val indice = ((dayStamp % destaques.size) + destaques.size) % destaques.size
+            val verdade = destaques[indice]
+            val corpo = listOfNotNull(
+                verdade.titulo.takeIf { it.isNotBlank() },
+                verdade.numero.takeIf { it.isNotBlank() },
+                verdade.veredito.ifBlank { verdade.texto.take(180) }.takeIf { it.isNotBlank() },
+                "Fonte: ${verdade.fonte} (${verdade.dataReferencia})."
+            ).joinToString(" ")
+            sendNotification(
+                verdade.titulo.ifBlank { "A verdade de hoje" },
+                corpo
+            )
+            prefs.lastDigestDay = dayStamp
+            return Result.success()
+        }
 
         val partes = mutableListOf<String>()
 

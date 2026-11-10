@@ -16,8 +16,8 @@ android {
         applicationId = "com.trouxaapp.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 6
-        versionName = "4.2.0"
+        versionCode = 7
+        versionName = "5.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -136,6 +136,7 @@ dependencies {
 }
 
 // Optional: -Pementas=<file.tsv> and -Ppainel=<dir> make the tests dump results for real samples
+// No Windows com PATH "sujo" (aspa em caminho), use `.\tools\build.ps1`.
 tasks.withType<Test>().configureEach {
     systemProperty("ementas", (project.findProperty("ementas") ?: "").toString())
     systemProperty("painel", (project.findProperty("painel") ?: "").toString())

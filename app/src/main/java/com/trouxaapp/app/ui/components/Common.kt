@@ -3,6 +3,7 @@ package com.trouxaapp.app.ui.components
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,15 +21,21 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.trouxaapp.app.ui.theme.Amber500
 import com.trouxaapp.app.ui.theme.Blue400
+import com.trouxaapp.app.ui.theme.OnBackground
 import com.trouxaapp.app.ui.theme.OnSurfaceFaint
 import com.trouxaapp.app.ui.theme.OnSurfaceVariant
+import com.trouxaapp.app.ui.theme.Red400
+import com.trouxaapp.app.ui.theme.Red600
 import com.trouxaapp.app.ui.theme.SurfaceVariant
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -162,6 +169,60 @@ fun TemperaturaBadge(valor: Int, modifier: Modifier = Modifier) {
             letterSpacing = 1.sp,
             maxLines = 1,
             softWrap = false
+        )
+    }
+}
+
+/**
+ * Selo. Carimbo curto, colado num fato: "JÁ VALE", "CRIA GASTO",
+ * "FORA DO ORÇAMENTO". Levemente torto de propósito — carimbo de verdade
+ * não sai alinhado.
+ */
+@Composable
+fun Selo(texto: String, modifier: Modifier = Modifier, cor: Color = Red600) {
+    if (texto.isBlank()) return
+    Box(
+        modifier = modifier
+            .rotate(-2f)
+            .border(2.dp, cor, RoundedCornerShape(6.dp))
+            .padding(horizontal = 10.dp, vertical = 4.dp)
+    ) {
+        Text(
+            texto.uppercase(Locale("pt", "BR")),
+            color = cor,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Black,
+            letterSpacing = 1.5.sp,
+            maxLines = 1,
+            softWrap = false
+        )
+    }
+}
+
+/**
+ * O veredito: "e daí?". Vem da curadoria quando existe gente olhando, e de
+ * regra declarada no [com.trouxaapp.app.util.Alma] quando não existe.
+ * Fica visualmente separado da leitura pra ninguém confundir opinião com dado.
+ */
+@Composable
+fun Veredito(texto: String, modifier: Modifier = Modifier, comRotulo: Boolean = true) {
+    if (texto.isBlank()) return
+    Column(modifier = modifier) {
+        if (comRotulo) {
+            Text(
+                "NA PRÁTICA",
+                color = Red400,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.5.sp
+            )
+        }
+        Text(
+            texto,
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.Medium,
+            color = OnBackground,
+            modifier = Modifier.padding(top = 2.dp)
         )
     }
 }

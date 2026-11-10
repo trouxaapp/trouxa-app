@@ -51,8 +51,10 @@ import coil.compose.AsyncImage
 import com.trouxaapp.app.data.local.LeiEntity
 import com.trouxaapp.app.ui.components.AtualizadoEm
 import com.trouxaapp.app.ui.components.EmptyState
+import com.trouxaapp.app.ui.components.Selo
 import com.trouxaapp.app.ui.components.TemaChip
 import com.trouxaapp.app.ui.components.TemperaturaBadge
+import com.trouxaapp.app.ui.components.Veredito
 import com.trouxaapp.app.ui.components.formatIsoDate
 import com.trouxaapp.app.ui.theme.Amber500
 import com.trouxaapp.app.ui.theme.Background
@@ -63,6 +65,7 @@ import com.trouxaapp.app.ui.theme.OnSurface
 import com.trouxaapp.app.ui.theme.OnSurfaceFaint
 import com.trouxaapp.app.ui.theme.OnSurfaceVariant
 import com.trouxaapp.app.ui.theme.Red600
+import com.trouxaapp.app.util.Alma
 import com.trouxaapp.app.util.LeiExplicada
 import com.trouxaapp.app.ui.theme.Surface
 import com.trouxaapp.app.ui.theme.SurfaceVariant
@@ -102,7 +105,7 @@ fun LeisFeedScreen(
                     color = Red600
                 )
                 Text(
-                    text = "projetos de lei, sem juridiquês",
+                    text = "o que eles votam, sem juridiquês",
                     style = MaterialTheme.typography.bodySmall,
                     color = OnSurfaceVariant
                 )
@@ -309,6 +312,18 @@ private fun LeiCard(lei: LeiEntity, onClick: () -> Unit) {
         val explicacao = remember(lei.siglaTipo, lei.ementa) {
             LeiExplicada.explicar(lei.siglaTipo, lei.ementa)
         }
+        // Carimbo + veredito: curadoria humana vence a regra do Alma.
+        val punch = remember(lei.plId, lei.ementa, lei.curadoriaSelo, lei.curadoriaVeredito, explicacao.valor) {
+            Alma.punchDoProjeto(lei, explicacao.valor, lei.curadoriaSelo, lei.curadoriaVeredito)
+        }
+        if (punch.selos.isNotEmpty()) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.padding(top = 10.dp)
+            ) {
+                punch.selos.take(3).forEach { s -> Selo(s) }
+            }
+        }
         if (explicacao.valor.isNotBlank()) {
             Text(
                 text = explicacao.valor.replace("R$ ", "R$ "),
@@ -327,6 +342,9 @@ private fun LeiCard(lei: LeiEntity, onClick: () -> Unit) {
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.padding(top = 6.dp)
             )
+        }
+        if (punch.veredito.isNotBlank()) {
+            Veredito(punch.veredito, Modifier.padding(top = 10.dp))
         }
 
         if (lei.autorNome.isNotBlank()) {

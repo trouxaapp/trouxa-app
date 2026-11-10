@@ -22,6 +22,7 @@ import com.trouxaapp.app.R
 import com.trouxaapp.app.data.local.LeiDao
 import com.trouxaapp.app.data.remote.BcbApiService
 import com.trouxaapp.app.data.repository.IndicadorRepository
+import com.trouxaapp.app.util.Alma
 import com.trouxaapp.app.util.UserPrefs
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
@@ -99,10 +100,17 @@ class EventNotificationWorker @AssistedInject constructor(
                         append(" (${nova.autorPartido}-${nova.autorUf})")
                     }
                 }
+                // Carimbo no titulo e veredito no corpo: o push tem que doer
+                // em 6 palavras, senao ninguem abre.
+                val punch = Alma.punchDoProjeto(nova)
                 notify(
-                    titulo = if (nova.tema.isNotBlank()) "${nova.tema}: um projeto andando na Câmara"
-                             else "Um projeto andando na Câmara",
-                    corpo = "${nova.siglaTipo} ${nova.numero}/${nova.ano}: ${nova.tituloPopular}. Autor: $autor. Toque pra ver o que muda.",
+                    titulo = punch.selos.firstOrNull()?.let { "$it: ${nova.siglaTipo} ${nova.numero}/${nova.ano}" }
+                        ?: "${nova.siglaTipo} ${nova.numero}/${nova.ano} andando na Câmara",
+                    corpo = listOf(
+                        nova.tituloPopular.ifBlank { nova.ementa }.take(150).trimEnd('.', ',', ' '),
+                        punch.veredito.takeIf { it.isNotBlank() },
+                        "Assina: $autor."
+                    ).filterNotNull().joinToString(" "),
                     plId = nova.plId
                 )
                 prefs.lastSeenLeiId = maxIdVisto

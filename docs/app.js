@@ -41,6 +41,57 @@ function explicacaoHtml(siglaTipo, ementa, completo) {
 
 // ---------- blocks ----------
 
+// A verdade do dia: curada no repo (feed/feed.json), com fonte obrigatória.
+// O site lê o mesmo arquivo que o app, então os dois nunca divergem.
+const FEED_URL = "https://raw.githubusercontent.com/trouxaapp/trouxa-app/main/feed/feed.json";
+
+// Piadas de processo, sem número: as mesmas do Alma.kt do app.
+const ESCULACHOS = [
+  "Quem paga a conta não é quem assina embaixo.",
+  "Urgência é o jeito educado de dizer “vota sem ler”.",
+  "No papel é temporário. Na prática, ninguém revoga.",
+  "Ementa é o que eles querem que você leia. O texto é o que vale.",
+  "Dar nome a ponte e renovar rádio passa fácil, e sai na foto.",
+  "Ninguém lê 40 páginas. Nem eles.",
+];
+
+async function verdade() {
+  const alvo = $("verdade-do-dia");
+  let feed;
+  try {
+    const resp = await fetch(FEED_URL, { cache: "no-cache" });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    feed = await resp.json();
+  } catch {
+    alvo.className = "hero carregando";
+    alvo.textContent = "A verdade do dia não carregou. Ela vive em feed/feed.json no repositório.";
+    return;
+  }
+
+  const itens = (feed?.itens || []).filter((i) => i.ativo !== false && i.tipo === "destaque");
+  if (!itens.length) {
+    alvo.className = "hero carregando";
+    alvo.textContent = "Sem verdade curada agora.";
+    return;
+  }
+
+  // Rodízio determinístico por dia: muda todo dia, estável dentro do dia
+  const dia = Math.floor(Date.now() / 86_400_000);
+  const item = itens[dia % itens.length];
+
+  alvo.className = "hero";
+  alvo.innerHTML = `
+    <div class="rotulo">A verdade de hoje</div>
+    ${item.selo ? `<div class="carimbo">${esc(item.selo)}</div>` : ""}
+    ${item.titulo ? `<p class="titulo">${esc(item.titulo)}</p>` : ""}
+    ${item.numero ? `<p class="numero">${esc(item.numero)}</p>` : ""}
+    ${item.veredito ? `<p class="veredito">${esc(item.veredito)}</p>` : ""}
+    <p class="texto">${esc(item.texto)}</p>
+    <div class="fonte">${link(item.fonte_url, item.fonte)} · dado de ${esc(dataIso(item.data_referencia))}</div>
+    <p class="esculacho">“${esc(ESCULACHOS[dia % ESCULACHOS.length])}”</p>`;
+}
+
+
 async function mercado() {
   const [d, b] = await Promise.all([P.dolar(), P.ibovespa()]);
   const cards = [d && indicador(d.v, d), b && indicador(b.v, b)].filter(Boolean);
@@ -184,5 +235,5 @@ function glossario() {
 
 glossario();
 // Independent blocks: one slow source never holds the others
-[mercado, parados, precos, camaraHoje, votacoes, senado, leisDaSemana, creditos, eleicao, noticias]
+[verdade, mercado, parados, precos, camaraHoje, votacoes, senado, leisDaSemana, creditos, eleicao, noticias]
   .forEach((f) => f().catch(() => {}));

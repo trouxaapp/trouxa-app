@@ -63,8 +63,10 @@ import com.trouxaapp.app.data.repository.LeisRepository
 import com.trouxaapp.app.ui.components.AtualizadoEm
 import com.trouxaapp.app.ui.components.FonteLinha
 import com.trouxaapp.app.ui.components.SectionLabel
+import com.trouxaapp.app.ui.components.Selo
 import com.trouxaapp.app.ui.components.TemaChip
 import com.trouxaapp.app.ui.components.TemperaturaBadge
+import com.trouxaapp.app.ui.components.Veredito
 import com.trouxaapp.app.ui.components.formatIsoDate
 import com.trouxaapp.app.ui.theme.Background
 import com.trouxaapp.app.ui.theme.CardBorder
@@ -75,6 +77,7 @@ import com.trouxaapp.app.ui.theme.OnSurfaceFaint
 import com.trouxaapp.app.ui.theme.OnSurfaceVariant
 import com.trouxaapp.app.ui.theme.Red400
 import com.trouxaapp.app.ui.theme.Red600
+import com.trouxaapp.app.util.Alma
 import com.trouxaapp.app.util.LawClassifier
 import com.trouxaapp.app.util.LeiExplicada
 import com.trouxaapp.app.util.ShareCard
@@ -134,6 +137,10 @@ fun LeiDetailScreen(
     val explicacao = remember(lei.siglaTipo, lei.ementa) {
         LeiExplicada.explicar(lei.siglaTipo, lei.ementa)
     }
+    // O soco do projeto: carimbo + "e daí?". Curadoria humana vence a regra.
+    val punch = remember(lei.plId, lei.ementa, lei.curadoriaSelo, lei.curadoriaVeredito, explicacao.valor) {
+        Alma.punchDoProjeto(lei, explicacao.valor, lei.curadoriaSelo, lei.curadoriaVeredito)
+    }
 
     val identificacao = "${lei.siglaTipo} ${lei.numero}/${lei.ano}"
     val fichaUrl = "https://www.camara.leg.br/proposicoesWeb/fichadetramitacao?idProposicao=${lei.plId}"
@@ -184,7 +191,9 @@ fun LeiDetailScreen(
                                     fonteUrl = fichaUrl,
                                     dataReferencia = formatIsoDate(
                                         lei.ultimoStatusData.ifBlank { lei.dataApresentacao }
-                                    )
+                                    ),
+                                    selo = punch.selos.firstOrNull().orEmpty(),
+                                    veredito = punch.veredito
                                 ),
                                 legenda = legenda
                             )
@@ -214,13 +223,14 @@ fun LeiDetailScreen(
             // Title + classification chips
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Text(titulo, style = MaterialTheme.typography.headlineMedium, color = OnBackground)
-                if (lei.tema.isNotBlank() || lei.temperatura >= 40) {
+                if (lei.tema.isNotBlank() || lei.temperatura >= 40 || punch.selos.isNotEmpty()) {
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         if (lei.tema.isNotBlank()) TemaChip(lei.tema)
                         TemperaturaBadge(lei.temperatura)
+                        punch.selos.firstOrNull()?.let { Selo(it) }
                     }
                 }
             }
@@ -256,6 +266,24 @@ fun LeiDetailScreen(
                     Caption(
                         "Leitura automática da ementa oficial. Quem decide o que vale é o texto completo.",
                         modifier = Modifier.padding(top = 8.dp)
+                    )
+                }
+            }
+
+            // O "e daí?", separado da leitura e do texto oficial. Quando não
+            // há regra nem curadoria, o bloco simplesmente não aparece.
+            if (!punch.vazio) {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    SectionLabel("Na prática, pra quem paga a conta")
+                    if (punch.selos.isNotEmpty()) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            punch.selos.take(3).forEach { s -> Selo(s) }
+                        }
+                    }
+                    Veredito(punch.veredito, comRotulo = false)
+                    Caption(
+                        "Carimbo e frase saem de regras fixas sobre o texto oficial da Câmara, " +
+                            "ou da curadoria quando ela existe. O dado bruto continua logo abaixo."
                     )
                 }
             }
@@ -421,7 +449,7 @@ fun LeiDetailScreen(
                     }
                 }
                 Caption(
-                    "Mensagens prontas e educadas. Dá pra revisar tudo antes de enviar.",
+                    "Mensagem pronta e direta: nada de “venho por meio desta”, é pergunta reta. Dá pra revisar antes de enviar.",
                     modifier = Modifier.padding(top = 8.dp)
                 )
             }

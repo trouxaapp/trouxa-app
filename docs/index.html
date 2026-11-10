@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Trouxa: leis e dinheiro público sem juridiquês</title>
-<meta name="description" content="O que o Congresso votou, quanto custou e o que mudou no seu bolso. Direto das fontes oficiais, com data e link, sem opinião.">
+<meta name="description" content="O que o Congresso votou, quanto custou e o que mudou no seu bolso. Sem juridiquês e sem papas na língua, sempre com fonte e data. Se te fizeram de trouxa, aqui você vê como.">
 <meta property="og:title" content="Trouxa">
-<meta property="og:description" content="Leis e dinheiro público sem juridiquês. Direto das fontes oficiais, com data e link.">
+<meta property="og:description" content="O que o Congresso votou e quanto custou, sem juridiquês. Só dado oficial, com fonte e data — e a verdade dita em voz alta.">
 <meta name="theme-color" content="#0A0A0A">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230A0A0A'/%3E%3Ctext x='16' y='23' font-family='Arial Black,Arial' font-weight='900' font-size='20' fill='%23DC2626' text-anchor='middle'%3ET%3C/text%3E%3C/svg%3E">
 <link rel="stylesheet" href="style.css">
@@ -15,8 +15,9 @@
 <header class="topo">
   <div class="wrap">
     <a class="marca" href="#">TROUXA</a>
-    <p class="sub">leis e dinheiro público, sem juridiquês</p>
+    <p class="sub">o que eles votam, sem juridiquês</p>
     <nav>
+      <a href="#verdade">A verdade do dia</a>
       <a href="#dinheiro">Dinheiro</a>
       <a href="#congresso">Congresso</a>
       <a href="#leis">Leis da semana</a>
@@ -29,19 +30,23 @@
 </header>
 
 <main class="wrap">
-  <p class="regra">Tudo aqui vem direto das fontes oficiais, lido agora pelo seu navegador. Cada número tem fonte e data. Quando uma fonte não responde, aparece o último dado bom com a data dele, nunca um número inventado.</p>
+  <p class="regra">Tudo aqui vem direto das fontes oficiais, lido agora pelo seu navegador. Cada número tem fonte e data. O que é leitura nossa vem com a barra vermelha do lado, pra você não confundir opinião com dado. Quando uma fonte não responde, aparece o último dado bom com a data dele, nunca um número inventado.</p>
+
+  <section id="verdade">
+    <div id="verdade-do-dia" class="hero carregando">Carregando a verdade do dia…</div>
+  </section>
 
   <section id="dinheiro">
-    <h2>Dinheiro hoje</h2>
+    <h2>Seu bolso hoje</h2>
     <div class="grade" id="mercado"><div class="card carregando">Carregando…</div></div>
-    <h3>O que mudou e o que não mudou</h3>
+    <h3>O que mexeu e o que continua igual</h3>
     <div class="grade" id="parados"></div>
-    <h3>O que subiu de preço</h3>
+    <h3>O que ficou mais caro</h3>
     <div id="precos"></div>
   </section>
 
   <section id="congresso">
-    <h2>Congresso</h2>
+    <h2>Eles hoje</h2>
     <div id="camara-hoje"></div>
     <h3>Últimas votações no Plenário da Câmara</h3>
     <p class="nota">Só entram votações que dizem qual projeto foi votado. Votação nominal mostra placar e como cada partido orientou.</p>
@@ -51,7 +56,7 @@
   </section>
 
   <section id="leis">
-    <h2>Leis da semana</h2>
+    <h2>O que eles estão tentando passar</h2>
     <p class="nota">Projetos apresentados na Câmara nos últimos 7 dias. A frase em português é leitura automática da ementa oficial, por regras fixas. Quem decide o que vale é o texto completo.</p>
     <div class="filtros" id="filtros"></div>
     <div id="lista-leis"></div>

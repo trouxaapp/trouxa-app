@@ -1,0 +1,143 @@
+{
+  "versao": 1,
+  "atualizado": "2026-11-10",
+  "regra": "Texto curado à mão. Cabeça + frase + fonte + link têm que caber em 280; o veredito entra se couber. Nada de número novo aqui: tudo sai da mesma fonte citada.",
+  "posts": [
+    {
+      "id": "cesta-2010-2026",
+      "numero": "R$ 265 → R$ 923",
+      "selo": "MESMA COMIDA",
+      "texto": "A cesta básica em São Paulo saiu de R$ 265 em 2010 para R$ 923 em setembro de 2026. R$ 657 a mais por mês pela mesma comida.",
+      "veredito": "Subiu com todos os governos.",
+      "fonte": "DIEESE, set/2026",
+      "fonte_url": "https://www.dieese.org.br/analisecestabasica/2026/202609cestabasica.pdf",
+      "data_referencia": "30/09/2026",
+      "imagem": {
+        "prompt": "flat illustration of an overflowing brazilian grocery basket, expensive food, thick bold shapes, poster art, no text"
+      }
+    },
+    {
+      "id": "minimo-x-viver",
+      "numero": "R$ 1.621 x R$ 7.750",
+      "selo": "4,8x",
+      "texto": "O salário mínimo oficial é R$ 1.621. O DIEESE calcula que uma família de quatro precisa de R$ 7.750 pra viver, em setembro de 2026.",
+      "veredito": "A diferença quem cobre é você.",
+      "fonte": "DIEESE, set/2026",
+      "fonte_url": "https://www.dieese.org.br/analisecestabasica/salarioMinimo.html",
+      "data_referencia": "30/09/2026",
+      "imagem": {
+        "prompt": "flat illustration of a tiny coin next to a huge pile of bills, cartoon, bold shapes, poster art, no text"
+      }
+    },
+    {
+      "id": "gasolina-enche-40",
+      "numero": "R$ 103 → R$ 262",
+      "selo": "O TANQUE",
+      "texto": "Encher 40 litros de gasolina custava R$ 103 em 2010. Hoje custa R$ 262. Mesma estrada, mais que o dobro da conta.",
+      "veredito": "Ninguém votou esse preço. Todos posaram ao lado dele.",
+      "fonte": "ANP, set/2026",
+      "fonte_url": "https://www.gov.br/anp/pt-br/assuntos/precos-e-defesa-da-concorrencia/precos/precos-revenda-e-de-distribuicao-combustiveis",
+      "data_referencia": "30/09/2026",
+      "imagem": {
+        "prompt": "flat illustration of a car fuel pump nozzle, bold cartoon shapes, dark background, poster art, no text"
+      }
+    },
+    {
+      "id": "botijao-triplicou",
+      "numero": "R$ 38 → R$ 114",
+      "selo": "PRA COZINHAR",
+      "texto": "O botijão de 13kg triplicou: de R$ 38 em 2010 para R$ 114 em setembro de 2026. É R$ 916 por ano só pra fazer comida.",
+      "veredito": "A comida está cara. O fogo também.",
+      "fonte": "ANP, set/2026",
+      "fonte_url": "https://www.gov.br/anp/pt-br/assuntos/precos-e-defesa-da-concorrencia/precos/precos-revenda-e-de-distribuicao-combustiveis",
+      "data_referencia": "30/09/2026",
+      "imagem": {
+        "prompt": "flat illustration of a gas cylinder bottle for cooking, bold cartoon shapes, dark background, poster art, no text"
+      }
+    },
+    {
+      "id": "salario-do-deputado",
+      "numero": "R$ 46.366,19",
+      "selo": "28 MÍNIMOS",
+      "texto": "Um deputado federal ganha R$ 46.366,19 por mês: 28 vezes o salário mínimo. E ainda tem cota de gastos por fora.",
+      "veredito": "Tudo imposto. Cada nota fiscal é pública.",
+      "fonte": "Câmara, dados abertos",
+      "fonte_url": "https://www2.camara.leg.br/transparencia/acesso-a-informacao/copy_of_perguntas-frequentes/deputados",
+      "data_referencia": "03/11/2026",
+      "imagem": {
+        "politico": "Guilherme Boulos",
+        "uf": "SP",
+        "prompt": "flat illustration of a sea of brown mud waves, cartoon stylized, thick bold shapes, dark background, no text"
+      }
+    },
+    {
+      "id": "ceap-item-por-item",
+      "numero": "R$ 48.727,46/mês",
+      "selo": "COTA PÚBLICA",
+      "texto": "Além do salário, um deputado de SP pode gastar até R$ 48.727,46 por mês em passagem, combustível e escritório. É a CEAP.",
+      "veredito": "Item por item, nota por nota. Dá pra conferir.",
+      "fonte": "Câmara, CEAP",
+      "fonte_url": "https://www2.camara.leg.br/comunicacao/assessoria-de-imprensa/guia-para-jornalistas/cota-parlamentar",
+      "data_referencia": "03/11/2026",
+      "imagem": {
+        "politico": "Kim Kataguiri",
+        "uf": "SP",
+        "prompt": "flat illustration of a sea of brown mud waves, cartoon stylized, thick bold shapes, dark background, no text"
+      }
+    },
+    {
+      "id": "fora-do-orcamento",
+      "numero": "R$ 1 trilhão+",
+      "selo": "FORA DO ORÇAMENTO",
+      "texto": "Desde 2020 o governo abriu mais de R$ 1 trilhão em crédito extraordinário: dinheiro gasto fora do Orçamento, por medida provisória.",
+      "veredito": "Pode ser gasto antes de o Congresso votar.",
+      "fonte": "Câmara, dados abertos",
+      "fonte_url": "https://dadosabertos.camara.leg.br/api/v2/proposicoes?siglaTipo=MPV",
+      "data_referencia": "01/11/2026",
+      "imagem": {
+        "politico": "Tabata Amaral",
+        "uf": "SP",
+        "prompt": "flat illustration of a sea of brown mud waves, cartoon stylized, thick bold shapes, dark background, no text"
+      }
+    },
+    {
+      "id": "so-homenagem",
+      "numero": "PONTE, RODOVIA, DATA",
+      "selo": "SÓ HOMENAGEM",
+      "texto": "Boa parte dos projetos apresentados na Câmara só dá nome a obra pública ou cria data comemorativa. Tramita rápido e sai na foto.",
+      "veredito": "Não muda nada na sua vida. E ocupa a pauta.",
+      "fonte": "Câmara, dados abertos",
+      "fonte_url": "https://dadosabertos.camara.leg.br/",
+      "data_referencia": "03/11/2026",
+      "imagem": {
+        "prompt": "flat illustration of a road sign plaque on a highway, bold cartoon shapes, dark background, poster art, no text"
+      }
+    },
+    {
+      "id": "ecidadania-20-mil",
+      "numero": "20 MIL APOIOS",
+      "selo": "VOCÊ MANDA",
+      "texto": "Se 20 mil pessoas apoiarem uma ideia de lei no e-Cidadania, do Senado, a comissão é obrigada a analisar. Não é abaixo-assinado de enfeite.",
+      "veredito": "É gatilho previsto no regimento.",
+      "fonte": "Senado, e-Cidadania",
+      "fonte_url": "https://www12.senado.leg.br/ecidadania",
+      "data_referencia": "29/06/2026",
+      "imagem": {
+        "prompt": "flat illustration of many small raised hands in a crowd, bold cartoon shapes, dark background, poster art, no text"
+      }
+    },
+    {
+      "id": "voto-aberto",
+      "numero": "VOTO NOMINAL",
+      "selo": "FICA REGISTRADO",
+      "texto": "Votação nominal registra o voto de cada deputado, com nome e partido, e publica no site da Câmara. Votação simbólica, não.",
+      "veredito": "Placar e orientação de cada partido ficam no app.",
+      "fonte": "Câmara, votações",
+      "fonte_url": "https://dadosabertos.camara.leg.br/api/v2/votacoes",
+      "data_referencia": "03/11/2026",
+      "imagem": {
+        "prompt": "flat illustration of an electronic voting panel with green and red lights, bold cartoon, dark background, no text"
+      }
+    }
+  ]
+}

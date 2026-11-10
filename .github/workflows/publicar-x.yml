@@ -1,0 +1,82 @@
+name: publicar no X
+
+# Três verdades por dia. O horário do cron é UTC; o rodízio de posts é
+# determinístico (data + slot), então não existe estado pra sincronizar.
+on:
+  schedule:
+    - cron: "30 11 * * *" # 08:30 BRT
+    - cron: "0 16 * * *" # 13:00 BRT
+    - cron: "30 22 * * *" # 19:30 BRT
+  workflow_dispatch:
+    inputs:
+      post_id:
+        description: "id do post em feed/posts.json (vazio = rodízio do dia)"
+        required: false
+        default: ""
+      dry_run:
+        description: "só monta, não publica"
+        type: boolean
+        required: false
+        default: false
+      provider:
+        description: "pollinations | venice | nenhum"
+        required: false
+        default: "pollinations"
+
+concurrency:
+  group: publicar-x
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      X_API_KEY: ${{ secrets.X_API_KEY }}
+      X_API_SECRET: ${{ secrets.X_API_SECRET }}
+      X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+      X_ACCESS_SECRET: ${{ secrets.X_ACCESS_SECRET }}
+      VENICE_API_KEY: ${{ secrets.VENICE_API_KEY }}
+      POLLINATIONS_TOKEN: ${{ secrets.POLLINATIONS_TOKEN }}
+      IMAGE_PROVIDER: ${{ github.event.inputs.provider || 'pollinations' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: automation/package-lock.json
+
+      - name: instalar dependências
+        working-directory: automation
+        run: npm ci --no-audit --no-fund
+
+      - name: descobrir o slot do horário
+        id: slot
+        run: |
+          hora=$(date -u +%H)
+          if [ "$hora" -lt 14 ]; then slot=0; elif [ "$hora" -lt 20 ]; then slot=1; else slot=2; fi
+          echo "slot=$slot" >> "$GITHUB_OUTPUT"
+
+      - name: montar e publicar
+        working-directory: automation
+        env:
+          SLOT: ${{ steps.slot.outputs.slot }}
+          POST_ID: ${{ github.event.inputs.post_id }}
+          DRY: ${{ github.event.inputs.dry_run }}
+        run: |
+          args=""
+          [ -n "$POST_ID" ] && args="$args --id=$POST_ID"
+          [ "$DRY" = "true" ] && args="$args --dry-run"
+          [ -z "$POST_ID" ] && [ "$DRY" != "true" ] && args="$args --slot=$SLOT"
+          node publicar.mjs $args
+
+      - name: guardar o cartaz como artefato
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cartazes
+          path: automation/_out/
+          retention-days: 7
+          if-no-files-found: ignore

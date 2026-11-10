@@ -53,4 +53,38 @@ class UserPrefs(context: Context) {
     var lastDigestDay: Int
         get() = prefs.getInt("last_digest_day", 0)
         set(value) { prefs.edit().putInt("last_digest_day", value).apply() }
+
+    // ---- ofensiva (o vício) ----------------------------------------------
+    // Contagem de dias seguidos abrindo o app. Guardada como número do dia
+    // (epoch em dias, UTC) porque comparar data em string dá trabalho e o
+    // fuso não muda nada aqui: o que interessa é "hoje" != "ontem" != "antes".
+
+    private val inicioDoDia: Long get() = System.currentTimeMillis() / 86_400_000L
+
+    var ofensiva: Int
+        get() = prefs.getInt("ofensiva", 0)
+        private set(value) { prefs.edit().putInt("ofensiva", value).apply() }
+
+    private var ultimoDiaVisto: Long
+        get() = prefs.getLong("ultimo_dia_visto", 0L)
+        set(value) { prefs.edit().putLong("ultimo_dia_visto", value).apply() }
+
+    var verdadesVistas: Int
+        get() = prefs.getInt("verdades_vistas", 0)
+        set(value) { prefs.edit().putInt("verdades_vistas", value).apply() }
+
+    /**
+     * Registra a visita de hoje e devolve a ofensiva atualizada.
+     * Ontem conta como sequência; qualquer buraco maior zera em 1.
+     */
+    fun registrarVisita(): Int {
+        val hoje = inicioDoDia
+        when (ultimoDiaVisto) {
+            hoje -> Unit
+            hoje - 1 -> ofensiva += 1
+            else -> ofensiva = 1
+        }
+        ultimoDiaVisto = hoje
+        return ofensiva
+    }
 }

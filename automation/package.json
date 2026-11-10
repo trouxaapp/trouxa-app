@@ -1,0 +1,17 @@
+{
+  "name": "trouxa-automacao",
+  "private": true,
+  "type": "module",
+  "description": "Gera o cartaz e publica a verdade do dia no X. Sem framework: sharp para imagem e node:crypto para o OAuth 1.0a.",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dry": "node publicar.mjs --dry-run --todos",
+    "hoje": "node publicar.mjs --dry-run",
+    "publicar": "node publicar.mjs"
+  },
+  "dependencies": {
+    "sharp": "^0.33.5"
+  }
+}

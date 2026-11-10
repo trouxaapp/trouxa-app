@@ -35,3 +35,8 @@ google-services.json
 
 # Android Profiling
 *.hprof
+
+# Node (automação do X)
+node_modules/
+automation/_out/
+automation/.env

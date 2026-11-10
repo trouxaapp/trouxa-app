@@ -44,6 +44,7 @@ import com.trouxaapp.app.data.painel.Precos
 import com.trouxaapp.app.data.painel.SenadoDia
 import com.trouxaapp.app.data.painel.Votacao
 import com.trouxaapp.app.ui.components.FonteLinha
+import com.trouxaapp.app.ui.components.Veredito
 import com.trouxaapp.app.ui.components.formatIsoDate
 import com.trouxaapp.app.ui.theme.Blue400
 import com.trouxaapp.app.ui.theme.CardBorder
@@ -56,6 +57,7 @@ import com.trouxaapp.app.ui.theme.Red400
 import com.trouxaapp.app.ui.theme.Red600
 import com.trouxaapp.app.ui.theme.Surface
 import com.trouxaapp.app.ui.theme.SurfaceVariant
+import com.trouxaapp.app.util.Alma
 import com.trouxaapp.app.util.LeiExplicada
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -129,6 +131,13 @@ internal fun PrecosCard(p: Precos) {
             color = OnSurface,
             modifier = Modifier.padding(top = 2.dp, bottom = 10.dp)
         )
+        p.altas.maxByOrNull { it.variacao }?.let { pior ->
+            Veredito(
+                "O que mais pesou no seu mês foi ${pior.nome.lowercase(Locale("pt", "BR"))}: " +
+                    "${PainelParsers.pct(pior.variacao)}. Não é estimativa, é a medição oficial do IBGE.",
+                Modifier.padding(bottom = 10.dp)
+            )
+        }
         Text("Mais subiram no mês", style = MaterialTheme.typography.titleSmall, color = OnBackground)
         val maior = (p.altas.maxOfOrNull { it.variacao } ?: 1.0)
         (if (tudo) p.altas else p.altas.take(5)).forEach { BarraPreco(it, maior, Red600) }
@@ -329,6 +338,15 @@ internal fun CreditosCard(creditos: List<CreditoAno>) {
             color = OnSurface,
             modifier = Modifier.padding(top = 4.dp, bottom = 8.dp)
         )
+        // O total do ano mais recente com dado, dito em voz alta
+        creditos.maxByOrNull { it.ano }?.let { atual ->
+            if (atual.quantidade > 0) {
+                Veredito(
+                    Alma.vereditoCredito(atual.ano, atual.total, atual.quantidade),
+                    Modifier.padding(bottom = 10.dp)
+                )
+            }
+        }
         val maior = creditos.maxOfOrNull { it.total }?.takeIf { it > 0 } ?: 1.0
         creditos.sortedByDescending { it.ano }.forEach { c ->
             Column(modifier = Modifier.padding(top = 8.dp)) {

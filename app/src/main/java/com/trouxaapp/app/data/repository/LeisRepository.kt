@@ -281,6 +281,8 @@ class LeisRepository @Inject constructor(
                 contrasJson = gson.toJson(cur.contras ?: emptyList<String>()),
                 contexto = cur.contexto ?: "",
                 fontesJson = gson.toJson(fontes),
+                veredito = cur.veredito?.trim().orEmpty(),
+                selo = cur.selo?.trim().orEmpty(),
                 ts = System.currentTimeMillis()
             )
             aplicadas++
@@ -391,6 +393,10 @@ class LeisRepository @Inject constructor(
         val pros: List<String>? = null,
         val contras: List<String>? = null,
         val contexto: String? = null,
+        // Optional punch: "e daí?" in one line and a short stamp. Curated,
+        // so it beats whatever Alma derives from the ementa.
+        val veredito: String? = null,
+        val selo: String? = null,
         val fontes: List<FonteCuradoria>? = null
     )
 }

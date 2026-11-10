@@ -37,7 +37,9 @@ object ShareCard {
         val texto: String,           // body
         val fonte: String,           // "DIEESE, cesta básica de São Paulo"
         val fonteUrl: String,
-        val dataReferencia: String   // already formatted, e.g. "30/04/2026"
+        val dataReferencia: String,  // already formatted, e.g. "30/04/2026"
+        val selo: String = "",       // carimbo torto, ex "FICOU MAIS CARO"
+        val veredito: String = ""    // o "e daí?", em uma linha
     )
 
     private const val W = 1080
@@ -70,6 +72,7 @@ object ShareCard {
         val bmp = Bitmap.createBitmap(W, H, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bmp)
         canvas.drawColor(FUNDO)
+        desenharHachura(canvas)
         val largura = (W - 2 * MARGEM).toInt()
 
         // Brand, top left, small: the data is the protagonist, not us
@@ -77,6 +80,9 @@ object ShareCard {
         val marca = textPaint(VERMELHO, 44f, Typeface.create(Typeface.MONOSPACE, Typeface.BOLD))
         canvas.drawText("te fizeram de", MARGEM, TOPO, marcaPequena)
         canvas.drawText("TROUXA", MARGEM, TOPO + 50f, marca)
+
+        // Carimbo, torto de proposito: carimbo de verdade nao sai alinhado
+        if (c.selo.isNotBlank()) carimbar(canvas, c.selo)
 
         var y = TOPO + 170f
 
@@ -97,6 +103,20 @@ object ShareCard {
         if (c.titulo.isNotBlank()) {
             val titulo = textPaint(BRANCO, 56f, Typeface.create("sans-serif", Typeface.BOLD))
             y = desenhar(canvas, c.titulo, titulo, largura, y, maxLinhas = 5) + 36f
+        }
+
+        // O veredito vem com barra vermelha do lado: e a unica linha do
+        // cartao que e leitura nossa, entao nao pode se misturar com o dado.
+        if (c.veredito.isNotBlank()) {
+            val p = textPaint(BRANCO, 44f, Typeface.create("sans-serif-medium", Typeface.NORMAL))
+            val alt = layout(c.veredito, p, largura - 36, maxLinhas = 4).height
+            val barra = Paint().apply { color = VERMELHO; strokeWidth = 10f }
+            canvas.drawRect(MARGEM, y, MARGEM + 10f, y + alt, barra)
+            canvas.save()
+            canvas.translate(MARGEM + 36f, y)
+            layout(c.veredito, p, largura - 36, maxLinhas = 4).draw(canvas)
+            canvas.restore()
+            y += alt + 40f
         }
 
         // Footer is laid out first, from the bottom up, so the body knows how
@@ -137,7 +157,45 @@ object ShareCard {
         convite.textAlign = Paint.Align.CENTER
         canvas.drawText("Dado público. Confira a fonte.", W / 2f, LIMITE + 90f, convite)
 
+        // Assinatura. Anônima de propósito: o dono do app não aparece aqui.
+        val assinatura = textPaint(CINZA_ESCURO, 28f, Typeface.MONOSPACE)
+        assinatura.textAlign = Paint.Align.CENTER
+        canvas.drawText("trouxa · @trouxaapp", W / 2f, LIMITE + 150f, assinatura)
+
         return bmp
+    }
+
+    /** Hachura diagonal de fundo: dá textura sem competir com o número. */
+    private fun desenharHachura(canvas: Canvas) {
+        val traco = Paint().apply {
+            color = Color.parseColor("#141414")
+            strokeWidth = 3f
+        }
+        var x = -H.toFloat()
+        while (x < W) {
+            canvas.drawLine(x, 0f, x + H, H.toFloat(), traco)
+            x += 46f
+        }
+    }
+
+    /** Carimbo no canto, torto, com moldura vermelha. */
+    private fun carimbar(canvas: Canvas, selo: String) {
+        val p = textPaint(VERMELHO, 40f, Typeface.create("sans-serif-black", Typeface.BOLD))
+        p.letterSpacing = 0.10f
+        val texto = selo.uppercase(PT_BR)
+        val w = p.measureText(texto) + 44f
+        val h = 78f
+        val borda = Paint().apply {
+            color = VERMELHO
+            style = Paint.Style.STROKE
+            strokeWidth = 5f
+        }
+        canvas.save()
+        canvas.translate(W - MARGEM - w, TOPO - 24f)
+        canvas.rotate(-3f)
+        canvas.drawRoundRect(0f, 0f, w, h, 12f, 12f, borda)
+        canvas.drawText(texto, 22f, h - 26f, p)
+        canvas.restore()
     }
 
     private fun salvar(context: Context, bmp: Bitmap): Uri {

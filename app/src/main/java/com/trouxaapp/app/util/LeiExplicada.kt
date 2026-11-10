@@ -158,6 +158,125 @@ object LeiExplicada {
             "Lei Complementar 101/2000. Põe limite em gasto com pessoal e em dívida de União, estados e municípios e proíbe certas despesas em ano de eleição.",
             "Câmara dos Deputados",
             PROCESSO_LEGISLATIVO
+        ),
+
+        // ---- palavras que aparecem nas votações e na tramitação ----
+        // São as que fazem o cidadão desligar. Cada uma é processo puro,
+        // sem juízo sobre o conteúdo do projeto.
+
+        "medida provisoria" to Termo(
+            "Medida provisória",
+            "Ato do presidente que já vale como lei desde a publicação, sem passar pelo Congresso antes. O Congresso tem até 120 dias pra aprovar; se não aprovar, ela perde o efeito e o Congresso regula o que já aconteceu (art. 62 da Constituição).",
+            "Constituição Federal",
+            CF
+        ),
+        "urgencia" to Termo(
+            "Urgência (regime de urgência)",
+            "Não muda o conteúdo da lei: muda a pressa. Com urgência aprovada, a discussão longa nas comissões é dispensada e o texto vai direto ao voto em plenário. Pode ser pedida pelo governo, por um deputado ou por um bloco de partidos.",
+            "Câmara dos Deputados",
+            PROCESSO_LEGISLATIVO
+        ),
+        "quorum" to Termo(
+            "Quórum",
+            "Quantidade mínima de deputados ou senadores que precisa estar na sala pra votação valer. Falta de quórum adia votação sem discutir o mérito (art. 47 da Constituição).",
+            "Constituição Federal",
+            CF
+        ),
+        "maioria absoluta" to Termo(
+            "Maioria absoluta",
+            "Metade mais um de todos os membros da Casa, contando os ausentes: 257 deputados e 41 senadores. É diferente de maioria dos presentes, que é mais fácil de atingir (art. 47 da Constituição).",
+            "Constituição Federal",
+            CF
+        ),
+        "votacao nominal" to Termo(
+            "Votação nominal",
+            "Voto um por um, registrado no painel e publicado com nome. Votação simbólica é só \"quem é a favor fica de pé\", e não dá pra saber o voto de cada um.",
+            "Câmara dos Deputados",
+            PROCESSO_LEGISLATIVO
+        ),
+        "orientacao de bancada" to Termo(
+            "Orientação de bancada",
+            "O que o partido manda seus deputados votarem. É opinião do partido, não do deputado: aparece no painel antes do voto e é pública.",
+            "Câmara dos Deputados",
+            PROCESSO_LEGISLATIVO
+        ),
+        "sancao" to Termo(
+            "Sanção",
+            "O \"sim\" final do presidente a um projeto aprovado pelo Congresso. Sem sanção, o projeto não vira lei. Ele também pode vetar parte ou tudo (art. 66 da Constituição).",
+            "Constituição Federal",
+            CF
+        ),
+        "veto" to Termo(
+            "Veto",
+            "O presidente recusa o projeto, ou pedaços dele. O Congresso pode derrubar o veto e a lei passa assim mesmo; pra isso precisa de maioria absoluta nas duas Casas (art. 66 da Constituição).",
+            "Constituição Federal",
+            CF
+        ),
+        "promulgacao" to Termo(
+            "Promulgação",
+            "O ato que dá existência oficial à lei e manda todo mundo cumprir. É o passo que vem depois da sanção (ou da derrubada do veto).",
+            "Constituição Federal",
+            CF
+        ),
+        "apensad" to Termo(
+            "Apensado",
+            "Projeto com o mesmo assunto que é grudado em outro mais antigo e passa a andar junto. É assim que um texto novo morre devagar dentro de um processo parado.",
+            "Câmara dos Deputados",
+            PROCESSO_LEGISLATIVO
+        ),
+        "prejudicad" to Termo(
+            "Prejudicado",
+            "Quando o motivo do projeto some ou outro texto já resolve o assunto, ele é dado como prejudicado e sai da fila sem nunca ter sido votado.",
+            "Câmara dos Deputados",
+            PROCESSO_LEGISLATIVO
+        ),
+        "arquivament" to Termo(
+            "Arquivamento",
+            "O projeto sai da gaveta e para de andar. Arquivar não é rejeitar: dá pra desarquivar depois, e é o fim da maioria dos projetos.",
+            "Câmara dos Deputados",
+            PROCESSO_LEGISLATIVO
+        ),
+        "requerimento" to Termo(
+            "Requerimento",
+            "Pedido formal feito por um deputado: adiar votação, pedir urgência, tirar da pauta, ouvir um ministro. Requerimento é o jeito de mexer no ritmo da sessão.",
+            "Câmara dos Deputados",
+            PROCESSO_LEGISLATIVO
+        ),
+        "relator" to Termo(
+            "Relator",
+            "Deputado sorteado a estudar o projeto e escrever o parecer sobre ele. Na prática, o relator decide o texto que vai a voto: é o cargo com mais poder no dia a dia.",
+            "Câmara dos Deputados",
+            PROCESSO_LEGISLATIVO
+        ),
+        "substitutivo" to Termo(
+            "Substitutivo",
+            "Texto novo que o relator apresenta no lugar do projeto original. Às vezes o substitutivo tem pouco a ver com o que o autor propôs.",
+            "Câmara dos Deputados",
+            PROCESSO_LEGISLATIVO
+        ),
+        "parecer" to Termo(
+            "Parecer",
+            "A decisão do relator (ou da comissão) dizendo se o projeto passa, muda ou morre. Parecer favorável é a porta de saída da comissão.",
+            "Câmara dos Deputados",
+            PROCESSO_LEGISLATIVO
+        ),
+        "obstrucao" to Termo(
+            "Obstrução",
+            "Partido deixa a sessão para conseguir número insuficiente no painel. É parar a votação sem votar contra o mérito.",
+            "Senado Federal, glossário legislativo",
+            GLOSSARIO_SENADO
+        ),
+        "cota parlamentar" to Termo(
+            "Cota parlamentar (CEAP)",
+            "Verba mensal extra do salário para o mandato pagar passagem, combustível, telefone, escritório e divulgação. Cada nota fiscal é pública e consultável no site da Câmara.",
+            "Câmara dos Deputados",
+            "https://www2.camara.leg.br/transparencia/acesso-a-informacao/copy_of_perguntas-frequentes/deputados"
+        ),
+        "destaque" to Termo(
+            "Destaque",
+            "Pedido para votar uma parte do texto separadamente, por cima do todo. Serve tanto pra salvar quanto pra derrubar um trecho específico da lei.",
+            "Câmara dos Deputados",
+            PROCESSO_LEGISLATIVO
         )
     )
 

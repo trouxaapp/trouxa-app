@@ -160,6 +160,12 @@ class FeedSyncWorker @AssistedInject constructor(
                 fonteUrl = fonteUrl,
                 dataReferencia = dataRef,
                 numero = item.numero?.trim().orEmpty(),
+                selo = item.selo?.trim().orEmpty(),
+                veredito = item.veredito?.trim().orEmpty(),
+                imagemUrl = item.imagem?.url?.trim().orEmpty(),
+                // Artwork without credit is dropped to empty rather than shown
+                // as if we owned it
+                imagemCredito = item.imagem?.credito?.trim().orEmpty(),
                 ativo = item.ativo ?: true,
                 atualizadoEm = agora
             )
@@ -168,7 +174,8 @@ class FeedSyncWorker @AssistedInject constructor(
     }
 }
 
-// Mirrors feed/feed.json schema v3 in the app repo ("numero" is optional)
+// Mirrors feed/feed.json schema v4 in the app repo ("numero" and the punch
+// fields are optional; fonte + fonte_url + data_referencia stay mandatory)
 data class FeedRemoteData(
     val versao: Int = 0,
     val atualizado: String? = null,
@@ -184,5 +191,13 @@ data class FeedRemoteItem(
     @SerializedName("fonte_url") val fonteUrl: String? = null,
     @SerializedName("data_referencia") val dataReferencia: String? = null,
     val numero: String? = null,    // optional, rendered big on cards
+    val selo: String? = null,      // optional curated stamp, e.g. "FICOU MAIS CARO"
+    val veredito: String? = null,  // optional curated punch line
+    val imagem: FeedRemoteImagem? = null,
     val ativo: Boolean? = true
+)
+
+data class FeedRemoteImagem(
+    val url: String? = null,
+    val credito: String? = null    // "arte: @trouxaapp" / "foto: Câmara"
 )

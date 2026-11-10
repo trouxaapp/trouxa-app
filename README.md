@@ -1,4 +1,4 @@
-﻿# Trouxa App
+# Trouxa App
 
 Android app that tracks bills moving through the Brazilian Congress and key economic indicators, with a hard rule: the app never invents data.
 
@@ -10,8 +10,11 @@ These are not aspirations, they are enforced in code:
 - **Mandatory sources and reference dates.** Curated content must ship with `fonte`, `fonte_url` and `data_referencia`. Items missing any of these are dropped during sync (`FeedSyncWorker`), so sourceless content cannot reach the UI.
 - **Honest staleness.** Fetch timestamps are stored per row and shown in the UI. When a bill has no recorded movement, the card says so instead of showing a fake status. Sync failures are counted and surfaced in a sync log (visible in Settings), not swallowed behind a green check.
 - **Opinion only via human curation, with sources.** Pros/cons/context for a bill come from a curated feed maintained by humans. Curation entries without at least one source URL are rejected by the app. Nothing opinionated is auto-generated.
-- **Neutral tone.** The app presents facts and sourced analysis. No partisan framing, no editorializing in UI strings.
-- **Plain language by rules, not by guessing.** `LeiExplicada.kt` turns an official ementa into one sentence ("Libera R$ 300 milhÃµes fora do OrÃ§amento jÃ¡ aprovado para...") with fixed patterns: credit openings, amendments to a named law, decree sustations, and so on. When no pattern fits, it says nothing. The detail screen labels the result as an automatic reading and keeps the official text next to it. Hard terms (crÃ©dito extraordinÃ¡rio, sustar, ADCT...) link to the Senate or Congress glossary.
+- **A alma, em três camadas.** Fato e opinião nunca se misturam:
+  1. **Leitura** — o que o projeto faz, por regra sobre o texto oficial (`LeiExplicada.kt`).
+  2. **Veredito** — o "e daí?", sempre amarrado num campo real ou numa regra declarada em `Alma.kt` (o carimbo e a frase saem de `seloDoProjeto`/`vereditoDoProjeto`, e o comentário de cada ramo diz em que fato ele se apoia). Curadoria humana vence a regra.
+  3. **Esculacho** — piada de processo, sem número ("Quem paga a conta não é quem assina embaixo."). Não afirma fato novo, então não precisa de fonte.
+- **Plain language by rules, not by guessing.** `LeiExplicada.kt` turns an official ementa into one sentence ("Libera R$ 300 milhões fora do Orçamento já aprovado para...") with fixed patterns: credit openings, amendments to a named law, decree sustations, and so on. When no pattern fits, it says nothing. The detail screen labels the result as an automatic reading and keeps the official text next to it. Hard terms (crédito extraordinário, sustar, quórum, maioria absoluta, relator, apensado...) link to the Senate or Congress glossary.
 
 ## Data sources
 
@@ -55,6 +58,19 @@ Debug build:
 
 Or just open the project in Android Studio and run. No API keys or secrets are needed for a debug build; all data sources are public.
 
+On Windows, prefer the wrapper:
+
+```
+./tools/build.ps1 testDebugUnitTest assembleDebug
+```
+
+It exists for two real machine problems: the JVM derives `-Djava.library.path` from
+`PATH`, and a stray quote or a space in `PATH` makes the Java launcher split the
+argument and kill the test worker before any test runs; and a stale `JAVA_HOME`
+(a JDK that is no longer installed) makes `gradlew` refuse to start. The wrapper
+sanitizes `PATH` for its own process and falls back to the `java` on `PATH`. On
+Linux/CI plain `./gradlew` is fine.
+
 ### Release build
 
 Release builds are signed with a keystore that is not in the repo. Create a `keystore.properties` file at the project root (it is gitignored) with:
@@ -82,25 +98,33 @@ Highlights and "did you know" items for the home feed:
 
 ```json
 {
-  "versao": 3,
-  "atualizado": "2026-06-10",
+  "versao": 6,
+  "atualizado": "2026-11-10",
   "itens": [
     {
       "id": 1,
       "tipo": "destaque",
       "titulo": "...",
-      "numero": "R$ 265 â†’ R$ 923",
+      "numero": "R$ 265 → R$ 923",
+      "selo": "SUBIU 248%",
+      "veredito": "Uma linha com o “e daí?”, vencendo a regra automática.",
       "texto": "...",
       "fonte": "Name of the source",
       "fonte_url": "https://...",
       "data_referencia": "2026-06-01",
+      "imagem": { "url": "https://...", "credito": "arte: @trouxaapp" },
       "ativo": true
     }
   ]
 }
 ```
 
-`numero` is optional: a short headline figure shown big on the card and on the shareable image. `fonte`, `fonte_url` and `data_referencia` are mandatory. The app drops any item missing them during sync and logs how many were discarded. An emptied remote feed empties the app, so retracting bad content actually works.
+`numero`, `selo`, `veredito` and `imagem` are optional: a short headline figure,
+a stamp, the curated punch line and an artwork. `fonte`, `fonte_url` and
+`data_referencia` are mandatory, and the veredito inherits that contract — it
+only appears next to a visible source. The app drops any item missing them
+during sync and logs how many were discarded. An emptied remote feed empties
+the app, so retracting bad content actually works.
 
 ### `feed/curadoria.json`
 
@@ -132,7 +156,21 @@ Static site in `docs/`, published by GitHub Pages. It reads the official sources
 
 ## Shareable cards
 
-Every highlight and every bill can be shared as a 1080x1920 image (`util/ShareCard.kt`), drawn on device. A card always carries the figure, the source, the source domain and the reference date together, so it still holds up when it is forwarded without context. The same file is the only place card layout lives.
+Every highlight and every bill can be shared as a 1080x1920 image (`util/ShareCard.kt`), drawn on device. A card always carries the figure, the source, the source domain and the reference date together, so it still holds up when it is forwarded without context. The same file is the only place card layout lives. When there is a stamp (`selo`) or a verdict, they go on the card too: the stamp as a crooked stamp, the verdict behind a red bar, so the reader never confuses the data with the reading.
+
+## Publicação no X
+
+The account [@trouxaapp](https://x.com/trouxaapp) is fed by `automation/`, three
+times a day, from a hand-curated queue in [`feed/posts.json`](feed/posts.json).
+The post is not the raw JSON: the script assembles stamp + figure + sentence +
+source + link, caps it at 280 characters (dropping hashtag, then the verdict,
+then a sentence — never the stamp, figure, source or link) and fails instead of
+cutting a sentence in half. The poster is composed on the spot: uncensored AI
+background ("sea of shit"), the sitting deputy's official photo stylized in
+black-and-white with a red duotone, crooked stamp, giant figure and the source
+at the foot. If the image provider falls over, the poster still ships with
+procedural brown waves. Details and secrets in
+[`automation/README.md`](automation/README.md).
 
 ## Contributing
 

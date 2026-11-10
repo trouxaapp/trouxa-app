@@ -69,6 +69,10 @@ data class LeiEntity(
     val curadoriaContrasJson: String = "",
     val curadoriaContexto: String = "",
     val curadoriaFontesJson: String = "",
+    // The curated punch line ("e daí?"). Human-written, so it beats the
+    // veredito that Alma derives from the ementa. Empty when nobody wrote.
+    val curadoriaVeredito: String = "",
+    val curadoriaSelo: String = "",
     val curadoriaAtualizadaEm: Long = 0,
 
     val sincronizadoEm: Long = 0
@@ -143,6 +147,8 @@ interface LeiDao {
             curadoriaContrasJson = :contrasJson,
             curadoriaContexto = :contexto,
             curadoriaFontesJson = :fontesJson,
+            curadoriaVeredito = :veredito,
+            curadoriaSelo = :selo,
             curadoriaAtualizadaEm = :ts
         WHERE plId = :id
     """)
@@ -153,6 +159,8 @@ interface LeiDao {
         contrasJson: String,
         contexto: String,
         fontesJson: String,
+        veredito: String,
+        selo: String,
         ts: Long
     )
 
@@ -273,6 +281,14 @@ data class FeedItemEntity(
     val fonteUrl: String,
     val dataReferencia: String, // date the fact refers to, shown in the UI
     val numero: String = "",    // optional headline figure, e.g. "R$ 265 → R$ 906"
+    // Optional curated punch: a short stamp ("FICOU MAIS CARO") and the
+    // "e daí?" line. Curated, so they still travel with fonte + data.
+    val selo: String = "",
+    val veredito: String = "",
+    // Optional artwork for the social post (used by the X pipeline and,
+    // when present, shown on the card). Credit is mandatory alongside it.
+    val imagemUrl: String = "",
+    val imagemCredito: String = "",
     val ativo: Boolean = true,
     val atualizadoEm: Long
 )
@@ -356,7 +372,7 @@ interface SyncLogDao {
         FeedItemEntity::class,
         SyncLogEntity::class
     ],
-    version = 10,
+    version = 11,
     exportSchema = false
 )
 abstract class TrouxaDatabase : RoomDatabase() {

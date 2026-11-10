@@ -1,6 +1,8 @@
 package com.trouxaapp.app.ui.screens.hoje
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -23,10 +25,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -39,9 +43,12 @@ import com.trouxaapp.app.ui.components.AtualizadoEm
 import com.trouxaapp.app.ui.components.EmptyState
 import com.trouxaapp.app.ui.components.FonteLinha
 import com.trouxaapp.app.ui.components.SectionLabel
+import com.trouxaapp.app.ui.components.Selo
+import com.trouxaapp.app.ui.components.Veredito
 import com.trouxaapp.app.ui.components.formatIsoDate
 import com.trouxaapp.app.ui.theme.Amber500
 import com.trouxaapp.app.ui.theme.CardBorder
+import com.trouxaapp.app.ui.theme.OnSurface
 import com.trouxaapp.app.ui.theme.OnSurfaceFaint
 import com.trouxaapp.app.ui.theme.OnSurfaceVariant
 import com.trouxaapp.app.ui.theme.Red600
@@ -99,10 +106,35 @@ fun HojeScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 val painel = state.painel
+                val verdade = state.destaques.firstOrNull { it.tipo == "destaque" }
+                    ?: state.destaques.firstOrNull()
+
+                // Abre com o soco: a verdade do dia, o carimbo, o "e daí?"
+                // e a ofensiva. O resto do app é prova disso.
+                if (verdade != null) {
+                    item(key = "verdade_do_dia") {
+                        VerdadeDoDia(
+                            item = verdade,
+                            ofensiva = state.ofensiva,
+                            vistas = state.verdadesVistas,
+                            onLida = viewModel::marcarVerdadeLida
+                        )
+                    }
+                }
+                if (state.esculacho.isNotBlank()) {
+                    item(key = "esculacho") {
+                        Text(
+                            "“${state.esculacho}”",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = OnSurfaceFaint,
+                            modifier = Modifier.padding(horizontal = 2.dp)
+                        )
+                    }
+                }
 
                 // What happened today comes first; the long-run comparisons go below
                 item(key = "label_dinheiro") {
-                    SectionLabel("Dinheiro hoje")
+                    SectionLabel("Seu bolso hoje")
                 }
                 if (painel != null && painel.mercado.isNotEmpty()) {
                     items(painel.mercado, key = { "m_" + it.nome }) { IndicadorPainelCard(it) }
@@ -122,21 +154,21 @@ fun HojeScreen(
                 // Step values: when they last moved, and from what
                 if (painel != null && painel.parados.isNotEmpty()) {
                     item(key = "label_parados") {
-                        SectionLabel("O que mudou e o que não mudou", Modifier.padding(top = 12.dp))
+                        SectionLabel("O que mexeu e o que continua igual", Modifier.padding(top = 12.dp))
                     }
                     items(painel.parados, key = { "p_" + it.nome }) { IndicadorPainelCard(it) }
                 }
 
                 painel?.precos?.let { precos ->
                     item(key = "label_precos") {
-                        SectionLabel("O que subiu de preço", Modifier.padding(top = 12.dp))
+                        SectionLabel("O que ficou mais caro", Modifier.padding(top = 12.dp))
                     }
                     item(key = "precos") { PrecosCard(precos) }
                 }
 
                 // Congress: who voted what, what is on today
                 item(key = "label_congresso") {
-                    SectionLabel("Congresso", Modifier.padding(top = 12.dp))
+                    SectionLabel("Eles hoje", Modifier.padding(top = 12.dp))
                 }
                 val camaraHoje = painel?.camaraHoje
                 if (camaraHoje != null) {
@@ -182,16 +214,18 @@ fun HojeScreen(
                 item(key = "label_destaques") {
                     SectionLabel("Antes e agora", Modifier.padding(top = 12.dp))
                 }
-                if (state.destaques.isEmpty()) {
+                val outrasVerdades = state.destaques.filter { it.id != verdade?.id }
+                if (outrasVerdades.isEmpty()) {
                     item(key = "destaques_vazio") {
                         Text(
-                            "Sem destaques curados no momento. Eles chegam por atualização remota, sempre com fonte.",
+                            if (verdade != null) "Só uma verdade por hoje. Já basta."
+                            else "Sem destaques curados no momento. Eles chegam por atualização remota, sempre com fonte.",
                             style = MaterialTheme.typography.bodySmall,
                             color = OnSurfaceVariant
                         )
                     }
                 } else {
-                    items(state.destaques, key = { it.id }) { destaque ->
+                    items(outrasVerdades, key = { it.id }) { destaque ->
                         DestaqueCard(destaque)
                     }
                 }
@@ -201,6 +235,133 @@ fun HojeScreen(
                         AtualizadoEm(painel.atualizadoEm, "Painel", Modifier.padding(top = 8.dp))
                     }
                 }
+            }
+        }
+    }
+}
+
+/**
+ * O soco de abertura: a verdade do dia com carimbo, número e veredito.
+ *
+ * Nada aqui é novo dado: o item vem do feed curado (com fonte, data e link
+ * obrigatórios) e o veredito ou é curado junto ou é a leitura de regra do
+ * Alma. O rótulo "na prática" existe justamente pra separar as duas coisas.
+ */
+@Composable
+private fun VerdadeDoDia(
+    item: FeedItemEntity,
+    ofensiva: Int,
+    vistas: Int,
+    onLida: () -> Unit
+) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(item.id) { onLida() }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .background(Red600.copy(alpha = 0.07f))
+            .border(1.dp, Red600.copy(alpha = 0.45f), RoundedCornerShape(14.dp))
+            .padding(16.dp)
+    ) {
+        Row(verticalAlignment = Alignment.Top) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    "A VERDADE DE HOJE",
+                    color = Red600,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Black,
+                    letterSpacing = 2.sp
+                )
+                if (item.selo.isNotBlank()) {
+                    Selo(item.selo, Modifier.padding(top = 8.dp, bottom = 4.dp))
+                }
+                if (item.titulo.isNotBlank()) {
+                    Text(
+                        item.titulo,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = OnSurface,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                }
+                if (item.numero.isNotBlank()) {
+                    Text(
+                        semQuebraNoValor(item.numero),
+                        style = MaterialTheme.typography.displayMedium,
+                        fontWeight = FontWeight.Black,
+                        color = Red600,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
+            }
+            IconButton(onClick = {
+                scope.launch {
+                    ShareCard.compartilhar(
+                        context,
+                        ShareCard.Conteudo(
+                            rotulo = item.titulo,
+                            numero = item.numero,
+                            titulo = "",
+                            texto = item.texto,
+                            fonte = item.fonte,
+                            fonteUrl = item.fonteUrl,
+                            dataReferencia = formatIsoDate(item.dataReferencia),
+                            selo = item.selo,
+                            veredito = item.veredito
+                        ),
+                        legenda = listOf(
+                            item.titulo,
+                            item.veredito.takeIf { it.isNotBlank() },
+                            "Fonte: ${item.fonte} (${formatIsoDate(item.dataReferencia)})",
+                            item.fonteUrl
+                        ).filterNotNull().filter { it.isNotBlank() }.joinToString("\n")
+                    )
+                }
+            }) {
+                Icon(Icons.Default.Share, contentDescription = "Compartilhar a verdade", tint = OnSurfaceVariant)
+            }
+        }
+
+        if (item.veredito.isNotBlank()) {
+            Veredito(item.veredito, Modifier.padding(top = 10.dp))
+        }
+
+        Text(
+            item.texto,
+            style = MaterialTheme.typography.bodyMedium,
+            color = OnSurface,
+            modifier = Modifier.padding(top = 8.dp)
+        )
+
+        FonteLinha(
+            fonte = item.fonte,
+            url = item.fonteUrl,
+            dataReferencia = formatIsoDate(item.dataReferencia),
+            modifier = Modifier.padding(top = 8.dp)
+        )
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            modifier = Modifier.padding(top = 6.dp)
+        ) {
+            if (ofensiva > 0) {
+                Text(
+                    if (ofensiva == 1) "1 dia encarando" else "$ofensiva dias seguidos encarando",
+                    color = Amber500,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            if (vistas > 0) {
+                Text(
+                    "$vistas verdades lidas",
+                    color = OnSurfaceFaint,
+                    fontSize = 11.sp
+                )
             }
         }
     }
@@ -293,6 +454,9 @@ private fun DestaqueCard(item: FeedItemEntity) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.Top) {
                 Column(modifier = Modifier.weight(1f)) {
+                    if (item.selo.isNotBlank()) {
+                        Selo(item.selo, Modifier.padding(bottom = 6.dp))
+                    }
                     if (item.titulo.isNotBlank()) {
                         Text(item.titulo, style = MaterialTheme.typography.titleMedium)
                     }
@@ -317,9 +481,16 @@ private fun DestaqueCard(item: FeedItemEntity) {
                                 texto = item.texto,
                                 fonte = item.fonte,
                                 fonteUrl = item.fonteUrl,
-                                dataReferencia = formatIsoDate(item.dataReferencia)
+                                dataReferencia = formatIsoDate(item.dataReferencia),
+                                selo = item.selo,
+                                veredito = item.veredito
                             ),
-                            legenda = "${item.titulo}\nFonte: ${item.fonte}\n${item.fonteUrl}"
+                            legenda = listOf(
+                                item.titulo,
+                                item.veredito.takeIf { it.isNotBlank() },
+                                "Fonte: ${item.fonte} (${formatIsoDate(item.dataReferencia)})",
+                                item.fonteUrl
+                            ).filterNotNull().filter { it.isNotBlank() }.joinToString("\n")
                         )
                     }
                 }) {
@@ -329,6 +500,9 @@ private fun DestaqueCard(item: FeedItemEntity) {
                         tint = OnSurfaceVariant
                     )
                 }
+            }
+            if (item.veredito.isNotBlank()) {
+                Veredito(item.veredito, Modifier.padding(top = 10.dp))
             }
             Text(
                 item.texto,
