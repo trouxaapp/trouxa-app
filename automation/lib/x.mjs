@@ -33,10 +33,22 @@ function baseString(method, url, params) {
 
 /**
  * Cabeçalho Authorization.
- * @param params parâmetros que também entram na assinatura (query string).
+ *
+ * A query string da URL entra na assinatura junto com os parâmetros extras: a
+ * base string usa só origin+path e TODOS os parâmetros (query inclusa) em
+ * ordem alfabética. Sem isso, um GET com query assina errado e volta 401.
+ *
+ * @param params parâmetros extras que também entram na assinatura.
  *               Corpo JSON não entra; corpo form-encoded entra.
  */
 export function cabecalhoOAuth({ method, url, params = {}, creds }) {
+  const alvo = new URL(url);
+  const daQuery = {};
+  alvo.searchParams.forEach((valor, chave) => {
+    daQuery[chave] = valor;
+  });
+  const semQuery = `${alvo.origin}${alvo.pathname}`;
+
   const oauth = {
     oauth_consumer_key: creds.key,
     oauth_nonce: crypto.randomBytes(16).toString("hex"),
@@ -45,11 +57,11 @@ export function cabecalhoOAuth({ method, url, params = {}, creds }) {
     oauth_token: creds.token,
     oauth_version: "1.0",
   };
-  const assinados = { ...params, ...oauth };
+  const assinados = { ...daQuery, ...params, ...oauth };
   const chave = `${pct(creds.secret)}&${pct(creds.tokenSecret)}`;
   oauth.oauth_signature = crypto
     .createHmac("sha1", chave)
-    .update(baseString(method, url, assinados))
+    .update(baseString(method, semQuery, assinados))
     .digest("base64");
 
   return (
