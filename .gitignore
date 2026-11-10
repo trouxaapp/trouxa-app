@@ -40,3 +40,4 @@ google-services.json
 node_modules/
 automation/_out/
 automation/.env
+tools/x-portal/out/
