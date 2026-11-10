@@ -65,8 +65,10 @@
       "fonte_url": "https://www2.camara.leg.br/transparencia/acesso-a-informacao/copy_of_perguntas-frequentes/deputados",
       "data_referencia": "03/11/2026",
       "imagem": {
-        "politico": "Guilherme Boulos",
-        "uf": "SP",
+        "politico": "Nikolas Ferreira",
+        "uf": "MG",
+        "foto_url": "https://www.camara.leg.br/internet/deputado/bandep/209787.jpg",
+        "legenda_foto": "Nikolas Ferreira (PL-MG)",
         "prompt": "flat illustration of a sea of brown mud waves, cartoon stylized, thick bold shapes, dark background, no text"
       }
     },
@@ -82,6 +84,8 @@
       "imagem": {
         "politico": "Kim Kataguiri",
         "uf": "SP",
+        "foto_url": "https://www.camara.leg.br/internet/deputado/bandep/204536.jpg",
+        "legenda_foto": "Kim Kataguiri (MISSÃO-SP)",
         "prompt": "flat illustration of a sea of brown mud waves, cartoon stylized, thick bold shapes, dark background, no text"
       }
     },
@@ -97,6 +101,8 @@
       "imagem": {
         "politico": "Tabata Amaral",
         "uf": "SP",
+        "foto_url": "https://www.camara.leg.br/internet/deputado/bandep/204534.jpg",
+        "legenda_foto": "Tabata Amaral (PSB-SP)",
         "prompt": "flat illustration of a sea of brown mud waves, cartoon stylized, thick bold shapes, dark background, no text"
       }
     },

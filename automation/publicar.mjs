@@ -94,7 +94,17 @@ async function main() {
 
   const creds = credenciais();
   const ids = montado.cartaz ? [await subirMidia(montado.cartaz.buffer, { creds })] : [];
-  const publicado = await tuitar(montado.texto, ids, { creds });
+  let publicado;
+  try {
+    publicado = await tuitar(montado.texto, ids, { creds });
+  } catch (e) {
+    // 402 aqui é saldo zerado, não permissão: a API do X é pré-paga e o texto
+    // só sai depois de comprar crédito em Billing > Credits no console.
+    if (/\(402\)|credits depleted/i.test(e.message)) {
+      console.error("faltam créditos no X (console > Billing > Credits). O cartaz e o texto estão prontos; só o post não saiu.");
+    }
+    throw e;
+  }
   const id = publicado?.id;
   console.log(`publicado: https://x.com/trouxaapp/status/${id}`);
 }

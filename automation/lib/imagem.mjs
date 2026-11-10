@@ -83,7 +83,7 @@ export async function fundoIA({
     try {
       return await tentar(texto, { width, height, apiKey });
     } catch (e) {
-      if (!silencioso) console.error(`fundo IA falhou (${tentar.name}): ${e.message}`);
+      if (!silencioso) console.log(`fundo IA falhou (${tentar.name}): ${e.message}`);
     }
   }
   return null;

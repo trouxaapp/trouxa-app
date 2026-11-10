@@ -114,8 +114,8 @@ async function baixar(url) {
  * @returns {Promise<{buffer: Buffer, arquivo: string}>}
  */
 export async function montarCartaz(post, { provider = process.env.IMAGE_PROVIDER || "pollinations" } = {}) {
-  // Quem é o político da vez: foto_url cravada manda; senão busca pelo nome
-  // e loga o id achado, porque match por nome pode errar.
+  // Quem é o político da vez: foto_url cravada manda (é o normal: resolvida
+  // uma vez e congelada no feed/posts.json); senão busca pelo nome na Câmara.
   let alvo = { foto_url: post?.imagem?.foto_url || "", legenda: post?.imagem?.legenda_foto || "" };
   if (!alvo.foto_url && post?.imagem?.politico) {
     try {
@@ -125,10 +125,12 @@ export async function montarCartaz(post, { provider = process.env.IMAGE_PROVIDER
           foto_url: d.foto,
           legenda: alvo.legenda || `${d.nome}${d.partido ? ` (${d.partido}${d.uf ? "-" + d.uf : ""})` : ""}`,
         };
-        console.error(`foto: ${post.imagem.politico} -> id ${d.id} ${d.nome} ${d.partido}-${d.uf}`);
+        console.log(`foto resolvida por nome: ${post.imagem.politico} -> id ${d.id} ${d.nome} ${d.partido}-${d.uf}`);
+      } else {
+        console.log(`foto: "${post.imagem.politico}" não achado na Câmara, cartaz sai sem foto`);
       }
     } catch (e) {
-      console.error(`busca de deputado falhou: ${e.message}`);
+      console.log(`busca de deputado falhou: ${e.message}`);
     }
   }
 
@@ -162,9 +164,12 @@ export async function montarCartaz(post, { provider = process.env.IMAGE_PROVIDER
       const estilizada = await estilizarFoto(await baixar(alvo.foto_url), fotoTam);
       fotoTopo = 250;
       camadas.push({ input: estilizada, left: W - MARGEM - fotoTam, top: fotoTopo });
+      console.log(`foto estilizada no cartaz: ${alvo.legenda || alvo.foto_url}`);
     } catch (e) {
-      console.error(`foto falhou: ${e.message}`);
+      console.log(`foto falhou (${alvo.foto_url}): ${e.message} — cartaz sai sem foto`);
     }
+  } else {
+    console.log("cartaz sem foto de político");
   }
 
   // 3. texto + carimbo + ondas
@@ -202,7 +207,8 @@ export async function montarCartaz(post, { provider = process.env.IMAGE_PROVIDER
     ${
       fotoTopo
         ? `<rect x="${W - MARGEM - fotoTam}" y="${fotoTopo}" width="${fotoTam}" height="${fotoTam}" rx="16" fill="none" stroke="${VERMELHO}" stroke-width="6"/>
-           <text x="${W - MARGEM - fotoTam}" y="${fotoTopo + fotoTam + 44}" font-family="DejaVu Sans, Arial, sans-serif" font-size="28" font-weight="700" fill="${BRANCO}">${esc(alvo.legenda)}</text>`
+           <text x="${W - MARGEM - fotoTam}" y="${fotoTopo + fotoTam + 40}" font-family="DejaVu Sans, Arial, sans-serif" font-size="28" font-weight="700" fill="${BRANCO}">${esc(alvo.legenda)}</text>
+           <text x="${W - MARGEM - fotoTam}" y="${fotoTopo + fotoTam + 72}" font-family="DejaVu Sans, Arial, sans-serif" font-size="22" fill="${CINZA}">foto: Câmara dos Deputados</text>`
         : ""
     }
     <rect x="${MARGEM}" y="${H - 190}" width="${W - 2 * MARGEM}" height="3" fill="#333"/>
